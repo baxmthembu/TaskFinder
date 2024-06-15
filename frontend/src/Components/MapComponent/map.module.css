@@ -1,0 +1,58 @@
+.app{
+	background-color: #CCCCFF;
+}
+
+.logo{
+	position: fixed;
+	right: 26px;
+	top: -3rem  
+}
+
+.containers {
+	padding: 40px 20px 20px 20px;
+	width: 95%;
+    position: absolute;
+    top: 36%;
+	margin: auto;
+	flex-wrap: wrap;
+	display: flex;
+	justify-content: space-between;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.card_items {
+	padding: 15px 30px;
+	width: 24%;
+	text-align: center;
+}
+
+.containers .card_items:hover {
+	transform: scale(1.02);
+	transition: transform .3s;
+	cursor: pointer;
+}
+
+.containers .card_items .userNames  {
+	color: #203150;
+	font-weight: 600;
+	font-size: 20px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.containers .card_inners .userNumbers {
+	color: #203150;
+	font-weight: 600;
+	font-size: 20px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.containers .card_inners .userJobs {
+	color: #333;
+	font-weight: bold;
+	font-size: 20px;
+}

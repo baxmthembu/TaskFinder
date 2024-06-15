@@ -1,0 +1,52 @@
+li {
+    color: white !important;
+}
+
+.input{
+  display: inline;
+  position: absolute;
+  left: 30px;
+}
+
+.submit {
+  /*width: 15%;
+  background-color: white;
+  color: black;
+  font-size: 12px;*/
+  background-color: #007bff;
+  color: #fff;
+  border-top-left-radius: 0; /* Remove border radius on the left */
+  border-bottom-left-radius: 0;
+  cursor: pointer;
+}
+
+.email, .submit {
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #333;
+}
+
+.email {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.links li {
+  list-style: none;
+  color: whitesmoke !important;
+}
+
+.links li a{
+  color: #333;
+  text-decoration: none;
+}
+
+/*footer {
+  /* Position the footer at the bottom *
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%
+}*/

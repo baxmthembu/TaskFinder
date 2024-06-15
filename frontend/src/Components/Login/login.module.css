@@ -1,0 +1,121 @@
+.logo{
+  position: fixed;
+  right: 26px;
+  top: -3rem
+}
+
+.app {
+    font-family: sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    height: 100vh;
+    font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+    background-color: #CCCCFF; /*hsla(225, 100%, 94%, 0.801)*/
+  }
+  
+  
+  input[type="text"],
+  input[type="password"],
+  input[type = "tel"],
+  input[type = "email"]{
+    height: 2.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    font-size: 25px;
+    border-radius: 10px;
+    background-color: #fff;
+    outline: none;
+  }
+  
+  input[type="submit"] {
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    background: #01d28e;
+    border: 1px solid #01d28e;
+    color: #fff;
+    padding: 10px 20px;
+  }
+
+  button[type="submit"] {
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    /*border: 1px solid #01d28e;*/    
+    color: black !important;
+    background-color: #6CB4EE !important;
+    border-radius: 3px;
+    width: 6rem;
+    padding: 10px 20px;
+  }
+  
+  /*input[type="submit"]:hover {
+    background-color: #6cf0c2 !important;
+    border-radius: 10px
+  }*/
+
+  /*button:hover{
+    background: #6cf0c2;
+    border-radius: 10px;
+  }*/
+  
+  .buttoncontainer {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .loginform {
+    background-color: transparent;
+    padding: 4rem;
+    margin: 4px;
+    /*box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);*/
+    box-shadow: 5px 5px 10px 2px rgba(95, 95, 95, 0.24);
+    align-items: right;
+    border-radius: 10px;
+    border: 1px solid black;
+
+  }
+
+
+  .listcontainer {
+    display: flex;
+  }
+  
+  .error {
+    color: red;
+    font-size: 20px;
+  }
+  
+  .title {
+    font-size: 25px;
+    margin-bottom: 20px;
+  }
+  
+  .inputcontainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px;
+    width: 100%;
+  }
+
+  label {
+    font-size: 25px
+  }
+
+  .createaccount .text {
+    color: darkcyan!important;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    position: relative;
+    left: 140px;
+    top: 20px
+  }
+
+  .createaccount .text:hover{
+    color: black;
+  }
+

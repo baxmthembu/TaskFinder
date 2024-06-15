@@ -1,0 +1,158 @@
+{
+  "user": [
+    {
+      "id": "adminuser",
+      "name": "Nihira",
+      "password": "admin",
+      "email": "nihiratechiees@gmail.com",
+      "phone": "8989898989",
+      "country": "usa",
+      "address": "",
+      "role": "admin",
+      "gender": "female"
+    },
+    {
+      "id": "ntuser",
+      "name": "Fullname",
+      "password": "ntuser",
+      "email": "email@email.com",
+      "phone": "56778889989",
+      "country": "singapore",
+      "address": "address1\naddrees2",
+      "role": "user",
+      "gender": "male"
+    },
+    {
+      "id": "bax45",
+      "name": "Bongumusa Mthembu",
+      "password": "playa112$",
+      "email": "bongumusam11@icloud.com",
+      "phone": "0766268973"
+    }
+  ],
+  "workers": [
+    {
+      "id": "worker1",
+      "name": "Bongumsua",
+      "surname": "Mthembu",
+      "occupation": "Plumber",
+      "phone": "0623849902",
+      "password": "password1",
+      "email": "bongumusamthembu@gmail.com"
+    },
+    {
+      "id": "worker2",
+      "name": "Lungelo",
+      "surname": "Khaula",
+      "occupation": "Plumber",
+      "phone": "0766239078",
+      "password": "password2",
+      "email": "lungelokhaula@gmail.com",
+      "link": "http://www.plumbers.html"
+    },
+    {
+      "id": "worker3",
+      "name": "Sizakele",
+      "surname": "Mthembu",
+      "occupation": "Electrician",
+      "phone": "0733934972",
+      "password": "password3",
+      "email": "sizakelemthembu@gmail.com",
+      "link": "http://www.electrician.html"
+    },
+    {
+      "id": "worker4",
+      "name": "Xolani",
+      "surname": "Mthembu",
+      "occupation": "Technician",
+      "phone": "0766268973",
+      "password": "password4",
+      "email": "xolanimthembu@gmail.com",
+      "link": "http://www.technicians.html"
+    },
+    {
+      "id": "worker5",
+      "name": "Lindani",
+      "surname": "Mthembu",
+      "occupation": "Technician",
+      "phone": "0634812704",
+      "password": "password5",
+      "email": "lindanimthembu@gmail.com",
+      "link": "http://www.technicians.html"
+    },
+    {
+      "id": "worker6",
+      "name": "Lungani",
+      "surname": "Mthembu",
+      "occupation": "Technician",
+      "phone": "0844915872",
+      "password": "password6",
+      "email": "lunganimthembu@gmail.com",
+      "link": "technician.js"
+    },
+    {
+      "id": "worker7",
+      "name": "Monica Weasly",
+      "password": "password7",
+      "email": "monicaweasley@gmail.com",
+      "phone": "031 504 1123",
+      "occupation": "construction"
+    },
+    {
+      "id": "bum11",
+      "name": "Michael ",
+      "password": "michael",
+      "email": "michael1@gmail.com",
+      "phone": "0634812704",
+      "occupation": "chef"
+    },
+    {
+      "id": "Tman",
+      "name": "Truman",
+      "password": "Tman2",
+      "email": "trumancele@gmail.com",
+      "phone": "0649430341",
+      "occupation": "babysitter"
+    },
+    {
+      "id": "Rose",
+      "name": "Martina",
+      "password": "password",
+      "email": "rose1932@gmail.com",
+      "phone": "06813246116",
+      "occupation": "Accountant"
+    },
+    {
+      "id": "Fortunate",
+      "name": "Dlamini",
+      "password": "dlamini",
+      "email": "fortunate@gmail.com",
+      "phone": "30404995343",
+      "occupation": "dog walker"
+    },
+    {
+      "id": "Nonhlanhla",
+      "name": "Dumbe",
+      "password": "nonhlanhla",
+      "email": "nonhlanhla@gmail.com",
+      "phone": "0614812704",
+      "occupation": "Lawyer"
+    },
+    {
+      "id": "Boongumusa",
+      "name": "Mthembu",
+      "password": "playa112$",
+      "email": "bongumusa@gmail.com",
+      "phone": "0649430341",
+      "occupation": "nurse"
+    },
+    {
+      "id": "Bongumusa",
+      "name": "Mthembu",
+      "password": "khjgjhb",
+      "email": "maps890@gmail.com",
+      "phone": "03150488082",
+      "occupation": "chef"
+    }
+  ]
+}

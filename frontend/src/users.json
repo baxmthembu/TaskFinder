@@ -1,0 +1,45 @@
+{
+  "users":[
+  {  
+  "name": "Bongumsua",
+    "surname": "Mthembu",
+    "occupation": "Plumber",
+    "rating": 4.5,
+    "link": "http://www.plumbers.html"        
+  },
+  {
+    "name": "Lungelo",
+    "surname": "Khaula", 
+    "occupation": "Plumber",
+    "rating": 2.0,
+    "link": "http://www.plumbers.html"
+  },
+  {
+    "name": "Sizakele",
+    "surname": "Mthembu",
+    "occupation": "Electrician",
+    "rating": 1.0,
+    "link": "http://www.electrician.html"
+  },
+  {
+    "name": "Xolani",
+    "surname": "Mthembu",
+    "occupation": "Technician",
+    "rating": 5.0,
+    "link": "http://www.technicians.html"
+  },
+  {
+    "name": "Lindani",
+    "surname": "Mthembu",
+    "occupation": "Technician",
+    "rating": 5.0,
+    "link": "http://www.technicians.html"
+  },
+  {
+    "name": "Lungani",
+    "surname": "Mthembu",
+    "occupation": "Technician",
+    "rating": 5.0,
+    "link": "technician.js"
+  }]
+}
