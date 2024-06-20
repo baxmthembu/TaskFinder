@@ -9,19 +9,27 @@ const socket = io.connect('http://localhost:3003');
 const Chat = () => {
     const location = useLocation();
     const { workerId, workerName } = location.state || {};
+    //currentMessage stores the current messages being typed by user
     const [currentMessage, setCurrentMessage] = useState("");
+    //messageList stores the list of all exhanged messages in the chat
     const [messageList, setMessageList] = useState([]);
 
     useEffect(() => {
+        //If workerId and workerName are present, it subscribes to the reacive_message event from the Socket.IO server
+        //and updates the message list whenever a new message is recieved
         if (workerId && workerName) {
             const room = `room-${workerId}`;
-            console.log(workerName)
+            console.log(`Worker Name: ${workerName}`)
+            console.log(`Worker Id: ${workerId}`)
             socket.on("receive_message", (data) => {
                 setMessageList((list) => [...list, data]);
             });
         }
     }, [workerId, workerName]);
 
+    //This function constructs a messageData object containing room ID, author name, message and the current time
+    //Sends this data to the server using socket.emit("send_message", messageData)
+    //Updates the messageList state to include the new message and clears the currentMessage state.
     const sendMessage = async () => {
         if (currentMessage !== "") {
             const room = `room-${workerId}`;
@@ -45,6 +53,8 @@ const Chat = () => {
             </div>
             <div className="chat-body">
                 <ScrollToBottom className="message-container">
+                {/*Maps over messageList to render each message with conditional styling based on whether the message 
+                  author is the current user or someone else.*/}
                     {messageList.map((messageContent, index) => {
                         return (
                             <div

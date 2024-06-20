@@ -1,11 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { GoogleMap, LoadScript, Marker, useGoogleMap, InfoWindow } from '@react-google-maps/api';
-import Axios from 'axios';
-import StarRating from '../SearchBar/starrating';
 import styles from '../MapComponent/map.module.css';
-import  PayPal from '../Paypal/paypal';
-import { Link } from 'react-router-dom';
-import FreelancerStatusToggle from '../../WorkerStatus/workerstatus';
+import Axios from 'axios'
 
 
 const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
@@ -80,9 +76,23 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
           position={{ lat: parseFloat(value.latitude), lng: parseFloat(value.longitude) }}
           title={value.name + ' ' + value.surname}
           icon={"https://img.icons8.com/color/48/null/user-male-circle--v1.png"}
-          onClick={() => {
+          onClick={async () => {
             setSelectedWorker(value);
             setInfoWindowOpen(true);
+
+            const clientId = localStorage.getItem('clientId');
+
+            if (userLocation) {
+              try {
+                await Axios.post('http://localhost:3001/saveInteraction', {
+                  freelancerId: value.id,
+                  clientId: clientId /* client ID here */,
+                  clientLocation: userLocation,
+                });
+              } catch (error) {
+                console.error('Error saving interaction:', error);
+              }
+            }
           }}
         />
                 ))}
@@ -92,4 +102,5 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
     </>
    )
 }
+
 export default MapContainer;

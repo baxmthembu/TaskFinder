@@ -21,6 +21,7 @@ import MapContainer from './Components/MapComponent/map';
 import Chat from './Chat';
 import WorkerLogin from './Worker/Login/worker_login';
 import Logout from './Worker/Logout/worker_logout';
+import FreelancerHome from './Worker/freelancerhome';
 import {UserProvider} from './UserContext';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
                 <Route path='/chat' element={<Chat />} />
                 <Route path= '/worker_login' element={<WorkerLogin />} />
                 <Route path='/worker_logout' element={<Logout />} />
+                <Route path='/freelancerhome' element={<FreelancerHome />} />
               </Routes>
             
           </UserProvider>

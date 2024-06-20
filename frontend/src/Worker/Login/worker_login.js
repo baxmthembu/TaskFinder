@@ -48,7 +48,8 @@ const WorkerLogin = () => {
                     console.log('User logged in:', response.data.user);  // Log user info
                     // Handle successful login (e.g., set user session, redirect, etc.)
                     setUser(response.data.user)
-                    navigate('/worker_logout')
+                    localStorage.setItem('workerId', response.data.workerId);
+                    navigate('/freelancerhome')
                     console.log('logged in')
                     console.log(response.status)
                 }else{

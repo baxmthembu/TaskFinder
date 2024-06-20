@@ -317,6 +317,93 @@ app.get('/locations', (req, res) => {
       });
 });
 
+app.get('/clientlocation/:workerId' ,(req,res) => {
+  const workerId = req.params.workerId
+  db('user_info')
+    .select('latitude','longitude')
+    .where('id', workerId)
+    .orderBy('created_at', 'desc')
+    .first()
+    .then((location) => {
+      if(location) {
+        res.status(200).send(location)
+      }else{
+        res.status(400).send({msg: 'Client location not found'})
+      }
+    })
+    .catch((err) => {
+      console.log('Error fetching location', err)
+      res.status(500).json({error: 'Internal server error'})
+    })
+})
+
+app.post('/saveClientLocation', (req, res) => {
+  const { workerId, clientId } = req.body;
+
+  // Fetch client's location from the user_info table based on clientId
+  db('user_info')
+    .select('latitude', 'longitude')
+    .where('id', clientId)
+    .first()
+    .then(clientLocation => {
+      if (!clientLocation) {
+        return res.status(404).json({ message: 'Client location not found' });
+      }
+      
+      // Insert client location for the worker
+      db('client_locations')
+        .insert({
+          id: workerId,
+          latitude: clientLocation.latitude,
+          longitude: clientLocation.longitude,
+        })
+        .then(() => {
+          res.status(200).send({ message: 'Client location saved successfully' });
+        })
+        .catch((err) => {
+          console.error('Error saving client location:', err);
+          res.status(500).send({ message: 'Internal server error' });
+        });
+    })
+    .catch((err) => {
+      console.error('Error fetching client location:', err);
+      res.status(500).send({ message: 'Internal server error' });
+    });
+});
+
+app.post('/saveInteraction', async (req, res) => {
+  const { freelancerId, clientId, clientLocation } = req.body;
+
+  try {
+    await db('client_locations').insert({
+      freelancer_id: freelancerId,
+      client_id: clientId,
+      latitude: clientLocation.latitude,
+      longitude: clientLocation.longitude,
+    });
+
+    res.status(200).json({ msg: 'Interaction saved successfully' });
+  } catch (error) {
+    console.error('Error saving interaction:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});
+
+app.get('/getClientLocations', async (req, res) => {
+  try {
+    const clientLocations = await db('client_locations')
+      .join('user_info', 'clientLocations.client_id', 'user_info.id')
+      .select('client_locations.client_id', 'client_locations.client_latitude', 'client_locations.client_longitude', 'user_info.name', 'user_info.surname');
+
+    res.status(200).json(clientLocations);
+  } catch (error) {
+    console.error('Error fetching client locations:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});
+
+
+
 app.get('/nearbyWorkers', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -462,18 +549,19 @@ app.post('/workerlogout', async (req, res) => {
 });
 
 app.post('/clientlogout', async (req, res) => {
-  const { ClientId } = req.body;
+  const { clientId } = req.body;
 
   try {
     // Convert freelancerId to a number to ensure it's properly formatted
-    const id = Number(freelancerId);
+    const id = Number(clientId);
 
     if (isNaN(id)) {
       throw new Error('Invalid freelancer ID');
     }
 
-    await db('freelancers')
-      .where('id', ClientId)
+    await db('user_info')
+      .where('id', clientId)
+      .update({status: 'offline'})
 
     res.json({ msg: 'Logout Successful' });
   } catch (error) {

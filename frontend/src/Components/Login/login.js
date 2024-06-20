@@ -11,7 +11,7 @@ import { UserContext } from "../../UserContext";
 
 
 const Login = () => {
-  const {setUser} = useContext(UserContext)
+  const {user, setUser} = useContext(UserContext)
   const [username, usernameupdate] = useState('');
   const [password, passwordupdate] = useState('');
   const [captchaValue, setCaptchaValue] = useState('');
@@ -33,14 +33,14 @@ const Login = () => {
         if(validate()) {
           const response = await Axios.post('http://localhost:3001/login', formData);
 
-          if (response.data.msg === 200) {
+          if (response.data.msg === "Authentication Successful") {
             // Authentication successful, navigate to the home page
             console.log('Authentication Successful', response.data.user);
             setUser(response.data.user)
-            toast.success('Welcome', {
+            toast.success(`Welcome ${user ? user.name : 'User'}`, {
               position: toast.POSITION.TOP_CENTER
             })  
-            usenavigate('/workerhome')
+            usenavigate('/home')
             // Redirect to the home page using React Router or window.location
           } else {
             // Authentication failed, handle the error

@@ -41,26 +41,7 @@ function Register() {
           }
         });
       };
-
-
-        // Fetch user's location using geolocation API or any other method
-        /*const fetchUserLocation = async () => {
-          try {
-            const position = await getLocation(); // Replace with your geolocation logic
-            setUserLocation({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            });
-          } catch (error) {
-            console.error('Error fetching user location:', error);
-          }
-          //fetchNearbyWorkers()
-        };
-    
-        /*fetchUserLocation();
-      }, []);*/
-    
-
+      
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData({...formData, [name]: value});
@@ -76,6 +57,7 @@ function Register() {
                 if(response.status === 200){
                     console.log('Register Successful')
                     toast.success('Registration Successful')
+                    localStorage.setItem('clientId', response.data.clientId)
                     navigate('/home')
                 }else{
                     console.error('Registration Failure')

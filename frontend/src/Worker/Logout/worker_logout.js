@@ -35,7 +35,6 @@ const Logout = () => {
     return(
         <div>
             <button onClick={handleLogout}>Logout</button>
-            <h2>{`Hello user ${user ? user.name: 'User'}`}</h2>
         </div>
     )
   };
