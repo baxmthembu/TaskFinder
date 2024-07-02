@@ -79,20 +79,6 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
           onClick={async () => {
             setSelectedWorker(value);
             setInfoWindowOpen(true);
-
-            const clientId = localStorage.getItem('clientId');
-
-            if (userLocation) {
-              try {
-                await Axios.post('http://localhost:3001/saveInteraction', {
-                  freelancerId: value.id,
-                  clientId: clientId /* client ID here */,
-                  clientLocation: userLocation,
-                });
-              } catch (error) {
-                console.error('Error saving interaction:', error);
-              }
-            }
           }}
         />
                 ))}

@@ -15,11 +15,20 @@ const { json, urlencoded } = require('express');
 const { diskStorage } = require('multer');
 const { hash, compare } = require('bcrypt');
 const { extname } = require('path');
+const crypto = require('crypto');
+const secret = crypto.randomBytes(64).toString('hex');
+//console.log(secret);
+const session = require('express-session');
+const passport = require('passport');
+const ws = require('ws');
 
 app.use(json());
 //app.use(_json())
 app.use(urlencoded({ extended: false }));
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -50,6 +59,52 @@ const storage = diskStorage({
 const upload = multer({
   storage: storage
 })
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  db('users').where({ id }).first().then(user => {
+    done(null, user);
+  }).catch(err => {
+    done(err, null);
+  });
+});
+
+const server = app.listen(port, () => {
+  console.log(`Listening on port ${port}`)
+})
+
+const wss = new ws.Server({ server });
+
+let clients = [];
+
+wss.on('connection', (ws) => {
+  clients.push(ws);
+  ws.on('close', () => {
+    clients = clients.filter(client => client !== ws);
+  });
+});
+
+const broadcast = (message) => {
+  clients.forEach(client => {
+    if (client.readyState === ws.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  });
+};
+
 // GET: Fetch all users from the database
 app.get('/', (req, res) => {
   db.select('*')
@@ -144,7 +199,8 @@ app.post('/registerWorker',upload.single('images'), async (req, res) => {
       longitude: longitude,
       images: images,
       status: 'offline',
-      role: 'freelancer'
+      role: 'freelancer',
+      isavailable: false
     });
 
     console.log('Registration successful');
@@ -197,7 +253,8 @@ app.get('/workers', async (req, res) => {
       longitude: worker.longitude,
       images: worker.images.toString('base64'), // Convert Buffer to base64 if 'image' is a Buffer
       // Add other properties as needed
-      status: worker.status
+      status: worker.status,
+      isavailable: worker.isavailable
     }));
     res.json(workersData);
   } catch (error) {
@@ -317,93 +374,6 @@ app.get('/locations', (req, res) => {
       });
 });
 
-app.get('/clientlocation/:workerId' ,(req,res) => {
-  const workerId = req.params.workerId
-  db('user_info')
-    .select('latitude','longitude')
-    .where('id', workerId)
-    .orderBy('created_at', 'desc')
-    .first()
-    .then((location) => {
-      if(location) {
-        res.status(200).send(location)
-      }else{
-        res.status(400).send({msg: 'Client location not found'})
-      }
-    })
-    .catch((err) => {
-      console.log('Error fetching location', err)
-      res.status(500).json({error: 'Internal server error'})
-    })
-})
-
-app.post('/saveClientLocation', (req, res) => {
-  const { workerId, clientId } = req.body;
-
-  // Fetch client's location from the user_info table based on clientId
-  db('user_info')
-    .select('latitude', 'longitude')
-    .where('id', clientId)
-    .first()
-    .then(clientLocation => {
-      if (!clientLocation) {
-        return res.status(404).json({ message: 'Client location not found' });
-      }
-      
-      // Insert client location for the worker
-      db('client_locations')
-        .insert({
-          id: workerId,
-          latitude: clientLocation.latitude,
-          longitude: clientLocation.longitude,
-        })
-        .then(() => {
-          res.status(200).send({ message: 'Client location saved successfully' });
-        })
-        .catch((err) => {
-          console.error('Error saving client location:', err);
-          res.status(500).send({ message: 'Internal server error' });
-        });
-    })
-    .catch((err) => {
-      console.error('Error fetching client location:', err);
-      res.status(500).send({ message: 'Internal server error' });
-    });
-});
-
-app.post('/saveInteraction', async (req, res) => {
-  const { freelancerId, clientId, clientLocation } = req.body;
-
-  try {
-    await db('client_locations').insert({
-      freelancer_id: freelancerId,
-      client_id: clientId,
-      latitude: clientLocation.latitude,
-      longitude: clientLocation.longitude,
-    });
-
-    res.status(200).json({ msg: 'Interaction saved successfully' });
-  } catch (error) {
-    console.error('Error saving interaction:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});
-
-app.get('/getClientLocations', async (req, res) => {
-  try {
-    const clientLocations = await db('client_locations')
-      .join('user_info', 'clientLocations.client_id', 'user_info.id')
-      .select('client_locations.client_id', 'client_locations.client_latitude', 'client_locations.client_longitude', 'user_info.name', 'user_info.surname');
-
-    res.status(200).json(clientLocations);
-  } catch (error) {
-    console.error('Error fetching client locations:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});
-
-
-
 app.get('/nearbyWorkers', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -511,7 +481,7 @@ app.post('/workerlogin', async (req, res) => {
           id: user.id,
           name: user.name,
           status: 'online',
-          role: 'freelancer'
+          role: 'freelancer',
           // Add other user details if needed
         }
       });
@@ -538,7 +508,8 @@ app.post('/workerlogout', async (req, res) => {
     await db('freelancers')
       .where('id', freelancerId)
       .update({
-        status: 'offline'
+        status: 'offline',
+        isavailable: false
       });
 
     res.json({ msg: 'Logout Successful' });
@@ -547,6 +518,8 @@ app.post('/workerlogout', async (req, res) => {
     res.status(500).json({ msg: 'An error occurred' });
   }
 });
+
+
 
 app.post('/clientlogout', async (req, res) => {
   const { clientId } = req.body;
@@ -570,8 +543,58 @@ app.post('/clientlogout', async (req, res) => {
   }
 });
 
+// Assuming you have a configured Express app and a database connection
 
+const ensureAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+};
 
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`)
-})
+app.post('/available', async (req, res) => {
+  const { freelancerId, isAvailable } = req.body;
+
+  try {
+    // Convert freelancerId to a number to ensure it's properly formatted
+    const id = Number(freelancerId);
+
+    if (isNaN(id)) {
+      throw new Error('Invalid freelancer ID');
+    }
+
+    await db('freelancers')
+      .where('id', id)
+      .update({
+        isavailable: isAvailable
+      });
+
+    broadcast({ id: id, isAvailable });
+
+    res.json({ msg: 'Availability status updated' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});
+
+app.get('/freelancer/:id/availability', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const freelancer = await db('freelancers')
+      .where('id', id)
+      .select('isavailable')
+      .first();
+
+    if (freelancer) {
+      res.json({ isAvailable: freelancer.isavailable });
+    } else {
+      res.status(404).json({ msg: 'Freelancer not found' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});

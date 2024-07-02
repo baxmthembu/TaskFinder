@@ -27,6 +27,9 @@ const Sidebar = () => {
         <li>
           <Logout className='menu-item' />
         </li>
+        <li>
+          <Link to="/workerhome" className='menu-item'>Map</Link>
+        </li>
       </ul>
     </div>
     </Menu> 

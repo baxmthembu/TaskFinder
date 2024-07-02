@@ -37,7 +37,8 @@ const Login = () => {
             // Authentication successful, navigate to the home page
             console.log('Authentication Successful', response.data.user);
             setUser(response.data.user)
-            toast.success(`Welcome ${user ? user.name : 'User'}`, {
+            localStorage.setItem('clientId', response.data.user.id);
+            toast.success(`Welcome ${response.data.user.username}`, {
               position: toast.POSITION.TOP_CENTER
             })  
             usenavigate('/home')

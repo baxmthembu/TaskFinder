@@ -84,6 +84,7 @@ function WorkerRegister({history}){
       .then(res => {
         if(res.data.status === 200) {
           console.log('Success')
+          navigate('/freelancerhome.js')
           toast.success('Registered Successfuly', {
             position: toast.POSITION.TOP_CENTER
           })

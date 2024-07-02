@@ -36,14 +36,14 @@ const FreelancerClientMap = () => {
   };
 
   return (
-    <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+    <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
         {clientLocations.map((client) => (
           <Marker
             key={client.client_id}
             position={{ lat: parseFloat(client.latitude), lng: parseFloat(client.longitude) }}
             title={'Client Location'}
-            icon={"https://img.icons8.com/color/48/null/location.png"}
+            icon={"https://img.icons8.com/color/48/null/user-male-circle--v1.png"}
           />
         ))}
       </GoogleMap>

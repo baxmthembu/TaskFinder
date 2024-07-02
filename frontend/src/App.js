@@ -21,8 +21,9 @@ import MapContainer from './Components/MapComponent/map';
 import Chat from './Chat';
 import WorkerLogin from './Worker/Login/worker_login';
 import Logout from './Worker/Logout/worker_logout';
-import FreelancerHome from './Worker/freelancerhome';
+import FreelancerHome from './Worker/FreelancerHome/freelancerhome';
 import {UserProvider} from './UserContext';
+import { FreelancerProvider } from './Worker/FreelancerContext';
 
 function App() {
     return (
@@ -47,7 +48,6 @@ function App() {
                 <Route path='/worker_logout' element={<Logout />} />
                 <Route path='/freelancerhome' element={<FreelancerHome />} />
               </Routes>
-            
           </UserProvider>
           </body>
         </div>

@@ -160,6 +160,21 @@ const Plumber = (props) => {
         };
 
         getData();
+
+        const ws = new WebSocket('ws://localhost:3001');
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      setData(prevFreelancers => prevFreelancers.map(freelancer => 
+        freelancer.id === message.freelancerId 
+          ? { ...freelancer, isavailable: message.isAvailable } 
+          : freelancer
+      ));
+    };
+
+    return () => {
+      ws.close();
+    };
     }, []);
 
     const handleSortChange = (e) => {
@@ -227,6 +242,13 @@ const Plumber = (props) => {
                                         <div className='userName'>{value.name} {value.surname}</div>
                                         <div className='userJob'>{value.occupation}</div>
                                         <div className='userNumber'>{value.phone}</div>
+                                        <div className='userStatus'>
+                                            Status: {value.status}
+                                            <span className={`status-button ${value.status === 'online' ? 'online' : 'offline'}`}></span>
+                                        </div>
+                                        <div className='availability'>
+                                            Availability: {value.isavailable ? 'Available' : 'Not Available'}
+                                        </div>
                                         <div className='detail-box'>
                                             <StarRating />
                                         </div>
@@ -236,7 +258,7 @@ const Plumber = (props) => {
                                                 pathname: "/chat",
                                                 state: { workerId: value.id, workerName: value.name }
                                             }}>
-                                                <button className='button' onClick={console.log(value.name)}>Message</button>
+                                                <button className='button' onClick={console.log(value.id)}>Message</button>
                                             </Link>
                                         </div>
                                     </div>

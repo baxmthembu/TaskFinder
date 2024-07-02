@@ -7,6 +7,8 @@ const Logout = () => {
     const { user, setUser } = useContext(UserContext);
     const navigate = useNavigate();
 
+    console.log('User context before logout:', user);
+
     const handleLogout = async () => {
         try {
             if (!user || !user.id) {
