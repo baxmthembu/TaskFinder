@@ -1,24 +1,40 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import styles from '../Components/MapComponent/map.module.css'
-import Axios from 'axios';
+import io from 'socket.io-client';
+import Chat from '../Chat';
 
-const FreelancerClientMap = () => {
-  const [clientLocations, setClientLocations] = useState([]);
-  const [mapCenter, setMapCenter] = useState({ lat: -29.7400389, lng: 30.9818962 });
+
+
+const socket = io.connect('http://localhost:3001');
+
+
+const FreelancerMap = ({ initialLocation }) => {
+  const defaultCenter = {lat: -29.7400389, lng: 30.9818962}
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [clientLocation, setClientLocation] = useState(initialLocation);
+  const [infoWindowOpen, setInfoWindowOpen] = useState(false);
 
   useEffect(() => {
-    const fetchClientLocations = async () => {
-      try {
-        const response = await Axios.get('http://localhost:3001/getClientLocations');
-        setClientLocations(response.data);
-      } catch (error) {
-        console.error('Error fetching client locations:', error);
-      }
-    };
+    console.log('Initial client location:', initialLocation.id);
+    console.log('Data', clientLocation)
 
-    fetchClientLocations();
-  }, []); // Fetch client locations on component mount
+    socket.on('receiveLocation', (location) => {
+      const newLocation = {
+        lat: parseFloat(location.latitude),
+        lng: parseFloat(location.longitude),
+        name: location.name,
+        surname: location.surname
+        };
+        console.log('Received client location:', newLocation);
+        setClientLocation(newLocation);
+        setMapCenter(newLocation);
+    });
+    
+        return () => {
+          socket.off('receiveLocation');
+        };
+}, [/*clientLocation*/initialLocation]);
 
   const mapStyles = {
     height: '500px',
@@ -28,6 +44,7 @@ const FreelancerClientMap = () => {
     top: '20%',
   };
 
+
   const mapOptions = {
     zoomControl: true,
     mapTypeControl: false,
@@ -35,22 +52,53 @@ const FreelancerClientMap = () => {
     fullscreenControl: false,
   };
 
+  const handleMarkerClick = () => {
+    setInfoWindowOpen(true);
+  };
+
+  const handleCloseClick = () => {
+    setInfoWindowOpen(false);
+  };
+
+  const handleMessageClick = () => {
+    const clientId = localStorage.getItem('userId');
+    const workerId = initialLocation.id;
+    const roomId = `room-${clientId}-${workerId}}`;
+    socket.emit('join_room', roomId);
+    window.location.href = `/chat?roomId=${roomId}&workerId=${workerId}&workerName=${clientLocation.name}`;
+  };
+
   return (
     <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
-        {clientLocations.map((client) => (
+        {clientLocation && !isNaN(clientLocation.lat) && !isNaN(clientLocation.lng) && (clientLocation.name) && (clientLocation.surname) &&(
           <Marker
-            key={client.client_id}
-            position={{ lat: parseFloat(client.latitude), lng: parseFloat(client.longitude) }}
-            title={'Client Location'}
+            
+            position={{lat: clientLocation.lat, lng: clientLocation.lng}}
+            title={`${clientLocation.name} ${clientLocation.surname}`}
             icon={"https://img.icons8.com/color/48/null/user-male-circle--v1.png"}
+            onClick={handleMarkerClick}
           />
-        ))}
+        )}{infoWindowOpen && (
+          <InfoWindow
+            position={{ lat: clientLocation.lat, lng: clientLocation.lng }}
+            onCloseClick={handleCloseClick}
+          >
+            <div>
+              <h3>{`${clientLocation.name} ${clientLocation.surname}`}</h3>
+              <div className='buttons'>
+              <button className='button' onClick={handleMessageClick }>Message</button>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
       </GoogleMap>
     </LoadScript>
   );
 };
 
-export default FreelancerClientMap;
+export default FreelancerMap;
+
+
 
 

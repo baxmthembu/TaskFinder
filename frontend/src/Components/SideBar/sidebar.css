@@ -200,7 +200,7 @@ Note: Beware of modifying this element as it can break the animations - you shou
 .bm-menu {
   background: #373a47;
   padding: 2.5em 1.5em 0;
-  font-size: 1.15em;
+  font-size: 1.50em;
 }
 
 /* Morph shape necessary with bubble or elastic */
@@ -223,6 +223,12 @@ Note: Beware of modifying this element as it can break the animations - you shou
   text-decoration: none;
   transition: color 0.2s;
   cursor: pointer;
+}
+
+.logout {
+  position: absolute;
+  left: 30%;
+  bottom: 70px;
 }
 
 /* Styling of overlay */

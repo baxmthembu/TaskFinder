@@ -4,28 +4,25 @@ import io from 'socket.io-client';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import './Components/Message/message2.css'
 
-const socket = io.connect('http://localhost:3003');
+const socket = io.connect('http://localhost:3001');
 
 const Chat = () => {
     const location = useLocation();
-    const { workerId, workerName } = location.state || {};
+    const { workerId, workerName, roomId } = location.state || {};
     //currentMessage stores the current messages being typed by user
     const [currentMessage, setCurrentMessage] = useState("");
     //messageList stores the list of all exhanged messages in the chat
     const [messageList, setMessageList] = useState([]);
 
-    useEffect(() => {
-        //If workerId and workerName are present, it subscribes to the reacive_message event from the Socket.IO server
-        //and updates the message list whenever a new message is recieved
-        if (workerId && workerName) {
-            const room = `room-${workerId}`;
-            console.log(`Worker Name: ${workerName}`)
-            console.log(`Worker Id: ${workerId}`)
-            socket.on("receive_message", (data) => {
-                setMessageList((list) => [...list, data]);
-            });
+        useEffect(() => {
+            if(roomId) {
+            socket.emit("join_room", roomId);
+
+            socket.on("reveive_message", (data) => {
+                setMessageList((list) => [...list,data])
+            })
         }
-    }, [workerId, workerName]);
+    }, [roomId])
 
     //This function constructs a messageData object containing room ID, author name, message and the current time
     //Sends this data to the server using socket.emit("send_message", messageData)
@@ -96,3 +93,17 @@ const Chat = () => {
 }
 
 export default Chat;
+
+
+    /*useEffect(() => {
+        //If workerId and workerName are present, it subscribes to the reacive_message event from the Socket.IO server
+        //and updates the message list whenever a new message is recieved
+        if (freelancerId && freelancerName) {
+            const room = `room-${freelancerId}`;
+            console.log(`Worker Name: ${freelancerName}`)
+            console.log(`Worker Id: ${freelancerId}`)
+            socket.on("receive_message", (data) => {
+                setMessageList((list) => [...list, data]);
+            });
+        }
+    }, [freelancerId, freelancerName]);*/

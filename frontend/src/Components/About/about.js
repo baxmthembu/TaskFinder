@@ -2,6 +2,7 @@
 import styles from './About.module.css'
 import NavBar from  '../NavBar/navbar';
 import DogWalker from '../Images/dogwalker'
+import Nav from '../Nav/nav';
 
 
 const logo1 = require('../Images/logo.png')
@@ -10,7 +11,7 @@ const About = () => {
     return (
         <>
         <header className={styles.header}>
-            <NavBar />
+            <Nav />
         </header>
             <div className={styles.body_container}>
             <div className={styles.About}>

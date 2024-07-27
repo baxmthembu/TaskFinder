@@ -130,18 +130,33 @@ import  PayPal from '../Paypal/paypal'*/
 
 export default Plumber*/
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SideBar from '../SideBar/sidebar'; // Assuming you have a SideBar component
 import PayPal from '../Paypal/paypal'; // Assuming you have a PayPal component
 import StarRating from '../SearchBar/starrating'; // Assuming you have a StarRating component
-import '../Home/plumber.css'
+import '../Home/plumber.css';
+import MapContainer from '../MapComponent/map';
+import Axios from 'axios';
+import ClientLocationMap from '../../Worker/freelancermap';
+import io from 'socket.io-client';
+import TopButton from '../BackToTop/top';
+import { UserContext } from '../../UserContext';
+
+
+const socket = io.connect('http://localhost:3001');
 
 const Plumber = (props) => {
     const [data, setData] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState('starRating');
     const [showMessageButton, setShowMessageButton] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [workersData, setWorkersData] = useState([]);
+    const [clientLocation, setClientLocation] = useState(null);
+    const [clientsData, setClientsData] = useState([]);
+    const {user} = useContext(UserContext)
+  
 
     useEffect(() => {
         const getData = async () => {
@@ -152,7 +167,7 @@ const Plumber = (props) => {
                 }
 
                 const data = await response.json();
-                console.log(data)
+                //console.log(data)
                 setData(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -161,21 +176,68 @@ const Plumber = (props) => {
 
         getData();
 
-        const ws = new WebSocket('ws://localhost:3001');
+        const fetchData = async () => {
+            try {
+              const response = await fetch('http://localhost:3001/workers', {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                },
+              });
+      
+              if (!response.ok) {
+                throw new Error('Failed to fetch data');
+              }
+      
+              const workersJson = await response.json();
+              setWorkersData(workersJson);
+            } catch (error) {
+              console.error('Error fetching data:', error);
+            }
+          };
+      
+          fetchData();
+          
+        const locationData = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/clients', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                });
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setData(prevFreelancers => prevFreelancers.map(freelancer => 
-        freelancer.id === message.freelancerId 
-          ? { ...freelancer, isavailable: message.isAvailable } 
-          : freelancer
-      ));
-    };
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
 
-    return () => {
-      ws.close();
-    };
-    }, []);
+                const clientsJson = await response.json();
+                setClientsData(clientsJson);
+                //console.log(clientsJson); // Debugging log
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        locationData();
+
+        socket.on('receiveAvailability', (availabilityData) => {
+            setWorkersData(prevData =>
+              prevData.map(worker =>
+                worker.id === availabilityData.freelancerId
+                  ? { ...worker, isAvailable: availabilityData.isAvailable }
+                  : worker
+              )
+            );
+          });
+
+          //console.log(workersData)
+      
+          return () => {
+            socket.off('receiveAvailability');
+          };
+
+    }, [workersData]);
 
     const handleSortChange = (e) => {
         setSortBy(e.target.value);
@@ -203,22 +265,50 @@ const Plumber = (props) => {
         setShowMessageButton(false);
     };
 
+    const handleSendLocation = async (workerId) => {        
+            try {
+                // Retrieve the client ID from localStorage
+                const clientId = localStorage.getItem('userId');
+                if (!clientId) {
+                    console.error('Client ID not found in localStorage');
+                    return;
+                }
+                const client = clientsData.find(worker => worker.id === clientId);
+                console.log(client)
+                if (client) {
+                    setClientLocation({ lat: parseFloat(client.latitude), lng: parseFloat(client.longitude) });
+    
+                    // Emit the location to the WebSocket server
+                    socket.emit('sendLocation', client);
+                    const roomId = `room-${clientId}-${workerId}`;
+                    socket.emit("join_room", roomId);
+                    window.location.href = `/chat?roomId=${roomId}&workerId=${workerId}&workerName=${client.name}`;
+                } else {
+                    console.error('Client not found:', clientId);
+                }
+            } catch (error) {
+                console.error('Error sending client location:', error);
+            }
+    };
+
     const logo1 = require("../Images/logo.png");
+    const logo2 = require("../Images/taskfinders.png")
 
     return (
         <>
             <div className="body-container">
                 <header>
                     <aside><SideBar pageWrapId={'page-wrap'} outerContainerId={'outer-container'} /></aside>
-                    <div className='image' style={{ textAlign: 'right', position: "relative", top: "-1em", right: "36px" }}>
+                    <div className='image' style={{ textAlign: 'right', position: "relative", top: "-1em", right: "36px",  }}>
                         <img src={logo1} />
                     </div>
                 </header>
                 <body>
                     <div className='searchbar'>
                         <input type="text" id="search" placeholder="Search for service" onChange={(event) => {
-                            setSearchTerm(event.target.value);
-                        }} />
+                            setSearchTerm(event.target.value); setSearchQuery(event.target.value)
+                        }} value={searchQuery} />
+                         <MapContainer data={workersData} searchQuery={searchQuery} />
                     </div>
                     <label className='sorting'>
                         Sort By:
@@ -256,9 +346,11 @@ const Plumber = (props) => {
                                             <PayPal onClick={handlePayButtonClick} />
                                             <Link to={{
                                                 pathname: "/chat",
-                                                state: { workerId: value.id, workerName: value.name }
+                                                state: { workerId: value.id, 
+                                                workerName: value.name,
+                                                 roomId: `room-${localStorage.getItem("clientId")}-${value.id}` }
                                             }}>
-                                                <button className='button' onClick={console.log(value.id)}>Message</button>
+                                                <button className='button' onClick={() => handleSendLocation(value.id)}>Message</button>
                                             </Link>
                                         </div>
                                     </div>
@@ -268,7 +360,8 @@ const Plumber = (props) => {
                     </div>
                 </body>
             </div>
-        </>
+            <TopButton />
+        </> 
     );
 };
 

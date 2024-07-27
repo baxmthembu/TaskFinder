@@ -20,7 +20,7 @@ import MapContainer from './Components/MapComponent/map';
 //import Chat from './Components/Message/message2';
 import Chat from './Chat';
 import WorkerLogin from './Worker/Login/worker_login';
-import Logout from './Worker/Logout/worker_logout';
+import Logout from './Worker/Logout/logout';
 import FreelancerHome from './Worker/FreelancerHome/freelancerhome';
 import {UserProvider} from './UserContext';
 import { FreelancerProvider } from './Worker/FreelancerContext';

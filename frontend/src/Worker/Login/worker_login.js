@@ -44,11 +44,17 @@ const WorkerLogin = () => {
             if(validate()){
                 const response = await Axios.post('http://localhost:3001/workerlogin', formData);
                 if (response.data.msg === 'Authentication Successful') {
+                  const userRole = response.data.user.isFreelancer ? 'freelancer' : 'client';
+                  // Set user in context
+                  const user = {
+                    ...response.data.user,
+                    role: userRole
+                  };        
                   //Assuming response.data.user contains the user details
                     console.log('User logged in:', response.data.user);  // Log user info
                     // Handle successful login (e.g., set user session, redirect, etc.)
-                    setUser(response.data.user)
-                    localStorage.setItem('workerId', response.data.workerId);
+                    setUser(user)
+                    localStorage.setItem('workerId', response.data.user.id);
                     navigate('/freelancerhome')
                     console.log('logged in')
                     console.log(response.status)

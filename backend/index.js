@@ -3,7 +3,6 @@ const multer = require('multer');
 const {v2: cloudinary} = require('cloudinary');
 const {Pool} = require('pg');
 const app = express();
-const port = 3001;
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const knex = require('knex');
@@ -20,7 +19,53 @@ const secret = crypto.randomBytes(64).toString('hex');
 //console.log(secret);
 const session = require('express-session');
 const passport = require('passport');
-const ws = require('ws');
+const http = require('http')
+const socketIo = require('socket.io')
+const server = http.createServer(app)
+
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  console.log(`User Connected: ${socket.id}`)
+
+  socket.on('sendLocation', (location) => {
+    console.log('Location received:', location);
+    // Send the location data to the freelancer
+    io.emit('receiveLocation', location);
+    // Broadcast the location to all connected clients
+    //io.emit('locationUpdate', location);
+  });
+
+  socket.on('updateAvailability', (availabilityData) => {
+    console.log('Availability update received:', availabilityData);
+    io.emit('receiveAvailability', availabilityData);
+  });
+
+  socket.on("join_room", (data) => {
+    socket.join(data)
+    console.log(`User with id: ${socket.id} joined room: ${data}`)
+})
+
+  //listen from the frontend so we can emit all the messages that were submitted by the people
+  socket.on("send_message", (data) => {
+      //to specifies where you wanna emit this event
+      socket.to(data.room).emit("recieve_message", data)
+        
+})        
+
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
 
 app.use(json());
 //app.use(_json())
@@ -58,89 +103,6 @@ const storage = diskStorage({
 
 const upload = multer({
   storage: storage
-})
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser((id, done) => {
-  db('users').where({ id }).first().then(user => {
-    done(null, user);
-  }).catch(err => {
-    done(err, null);
-  });
-});
-
-const server = app.listen(port, () => {
-  console.log(`Listening on port ${port}`)
-})
-
-const wss = new ws.Server({ server });
-
-let clients = [];
-
-wss.on('connection', (ws) => {
-  clients.push(ws);
-  ws.on('close', () => {
-    clients = clients.filter(client => client !== ws);
-  });
-});
-
-const broadcast = (message) => {
-  clients.forEach(client => {
-    if (client.readyState === ws.OPEN) {
-      client.send(JSON.stringify(message));
-    }
-  });
-};
-
-// GET: Fetch all users from the database
-app.get('/', (req, res) => {
-  db.select('*')
-      .from('user_info')
-      .where('id', 3)
-      .then((data) => {
-          console.log(data);
-          res.json(data);
-      })
-      .catch((err) => {
-          console.log(err);
-      });
-});
-
-app.get('/users', (req,res) => {
-  db.select('*')
-    .from('user_info')
-    .then((data) => {
-      console.log(data);
-      res.json(data);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-})
-
-app.get('/searchFreelancers', (req,res) => {
-  db.select('*')
-    .from('freelancers')
-    .where('occupation=${type}')
-    .then((data) => {
-      console.log(data);
-    })
-    .catch((err) => {
-      console.log(err)
-    })
 })
 
 //POST: Post user info into database
@@ -226,17 +188,28 @@ app.post('/imageupload', async(req,res) => {
   }
 })
 
-/*app.get('/workers', async (req, res) => {
-  db.select('*')
-    .from('freelancers')
-    .then((data) => {
-      console.log(data);
-      res.json(data);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-})*/
+// index.js
+app.get('/clientlocation', async(req, res) => {
+  try {
+    const clientId = req.query.clientId
+    if (!clientId) {
+      return res.status(400).json({ msg: 'Client ID is required' });
+    }
+    const clientLocation = await db('user_info')
+      .select('id', 'latitude', 'longitude')
+      .where('id', clientId)
+      .first();
+      
+    if (!clientLocation) {
+      return res.status(404).json({ msg: 'Client not found' });
+    }
+
+    return res.json(clientLocation);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: 'An error occurred' });
+  }
+});
 
 app.get('/workers', async (req, res) => {
   try {
@@ -263,9 +236,31 @@ app.get('/workers', async (req, res) => {
   }
 });
 
+app.get('/clients', async (req, res) => {
+  try {
+    const data = await db.select('*').from('user_info');
+    const workersData = data.map((worker) => ({
+      name: worker.name,
+      surname: worker.surname,
+      password: worker.password,
+      email: worker.email,
+      phone: worker.phone,
+      username: worker.username,
+      id: worker.id,
+      latitude: worker.latitude,
+      longitude: worker.longitude,
+    }));
+    res.json(workersData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 app.post('/login', async (req, res) => {
-  const { password, username } = req.body;
+  const { password, username, latitude, longitude } = req.body;
 
   if(!username || !password){
     return res.status(400).json({msg:'Please provide both name and password'})
@@ -273,7 +268,7 @@ app.post('/login', async (req, res) => {
 
   try {
     const user = await db
-      .select('password', 'username')
+      .select('id','password', 'username')
       .from('user_info')
       .where('username',username)
       .first();
@@ -285,6 +280,10 @@ app.post('/login', async (req, res) => {
     const isPasswordValid = await compare(password, user.password);
 
     if (isPasswordValid) {
+      await db('user_info')
+        .where('id', user.id)
+        .update({ latitude, longitude, status: 'online' });
+
       res.json({
         msg: 'Authentication Successful',
         user: {
@@ -305,74 +304,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Assuming you have initialized Knex and named the instance as 'knex'
-
-// Endpoint to update freelancer's location
-app.post('/api/updateLocation', (req, res) => {
-  const { freelancerId, latitude, longitude } = req.body;
-
-  db('freelancers')
-    .where('freelancerid', freelancerId)
-    .update({
-      latitude: latitude,
-      longitude: longitude
-    })
-    .then(() => {
-      console.log('Location updated');
-      res.send('Location updated');
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send('Error updating location');
-    });
-});
-
-app.post('/location', (req, res) => {
-  const { freelancerId, latitude, longitude } = req.body;
-
-  // Insert the freelancer's location into the database
-  db('freelancers')
-    .where('freelancerid', freelancerId) // Assuming 'id' is the identifier column for freelancers
-    .update({
-      latitude: latitude,
-      longitude: longitude
-    })
-    .then(() => {
-      res.status(200).send('Location updated successfully');
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send('Error updating location');
-    });
-});
-
-app.post('/api/freelancer/location', async (req, res) => {
-  const { latitude, longitude } = req.body;
-
-  try {
-    await db('freelancers').insert({
-      latitude: latitude,
-      longitude: longitude 
-    });
-
-    res.status(201).json({ message: 'Freelancer location saved successfully' });
-  } catch (error) {
-    console.error('Error saving freelancer location:', error);
-    res.status(500).json({ error: 'Error saving freelancer location' });
-  }
-});
-
-app.get('/locations', (req, res) => {
-  db.select('id', 'latitude', 'longitude')
-      .from('freelancers')
-      .then((data) => {
-          res.json(data);
-      })
-      .catch((err) => {
-          console.log('Error fetching locations:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-      });
-});
 
 app.get('/nearbyWorkers', async (req, res) => {
   try {
@@ -399,58 +330,6 @@ app.get('/nearbyWorkers', async (req, res) => {
   }
 });
 
-
-// Endpoint to Update Freelancer Status
-app.post('/updateStatus', (req, res) => {
-  const { freelancerId, status } = req.body;
-
-  db('freelancers')
-    .where('id', freelancerId)
-    .update({ status })
-    .then(() => {
-      res.json({ msg: 'Status updated successfully' });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ msg: 'An error occurred' });
-    });
-});
-
-/*app.post('/workerlogin', async (req, res) => {
-  const { name, password } = req.body;
-
-  try {
-    const user = await db
-      .select('id', 'name', 'password') // Assuming role distinguishes freelancers from clients
-      .from('freelancers')
-      .where('name', name)
-      .first();
-
-    if (!user) {
-      return res.status(401).json({ msg: 'Authentication Failed' });
-    }
-
-    const isPasswordValid = await compare(password, user.password);
-
-    if (isPasswordValid) { 
-        await db('freelancers')
-          .where('id', user.id)
-          .update({
-            status: 'online'
-          })
-          .then((data)=> {
-            console.log(data.status)
-          });
-
-      res.json({ msg: 'Authentication Successful' });
-    } else {
-      res.status(401).json({ msg: 'Authentication Failed' });
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});*/
 
 // Login Endpoint
 app.post('/workerlogin', async (req, res) => {
@@ -570,7 +449,7 @@ app.post('/available', async (req, res) => {
         isavailable: isAvailable
       });
 
-    broadcast({ id: id, isAvailable });
+    /*broadcast({ id: id, isAvailable });*/
 
     res.json({ msg: 'Availability status updated' });
   } catch (error) {
@@ -598,3 +477,8 @@ app.get('/freelancer/:id/availability', async (req, res) => {
     res.status(500).json({ msg: 'An error occurred' });
   }
 });
+
+const port = 3001
+server.listen(port, () => {
+  console.log(`Server listening on port ${port}`)
+})

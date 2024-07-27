@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, Route, NavLink } from 'react-router-dom';
-import './sidebar.css'
+import'./sidebar.css'
 import { elastic as Menu } from 'react-burger-menu';
-import Logout from '../../Worker/Logout/worker_logout'
+import Logout from '../../Worker/Logout/logout'
 
 const Sidebar = () => {
 
   return (
     <div>
-      <div className="bm-burger-button">
-      <div className="bm-burger-bars" />
+      <div className='bm-burger-button'>
+      <div className='bm-burger-bars' />
       </div>
     <Menu>
     <div className='menu'>
@@ -24,8 +24,8 @@ const Sidebar = () => {
           <Link to=
           "/profile" className='menu-item'>Profile</Link>
         </li>
-        <li>
-          <Logout className='menu-item' />
+        <li className='logout'>
+          <Logout className='menu-items' />
         </li>
         <li>
           <Link to="/workerhome" className='menu-item'>Map</Link>

@@ -1,5 +1,5 @@
 /* Toggle Switch */
-.switch {
+/*.switch {
     position: relative;
     display: inline-block;
     width: 60px;
@@ -44,11 +44,180 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
-/* Rounded sliders */
+/* Rounded sliders *
 .slider.round {
     border-radius: 34px;
 }
 
 .slider.round:before {
     border-radius: 50%;
-}
+}*/
+
+.checkbox-wrapper-5 .check {
+    --size: 40px;
+
+    position: relative;
+    /*background: linear-gradient(90deg, #f19af3, #f099b5);*/
+    background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+    left: 10px;
+    line-height: 0;
+    perspective: 400px;
+    font-size: var(--size);
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"],
+  .checkbox-wrapper-5 .check label,
+  .checkbox-wrapper-5 .check label::before,
+  .checkbox-wrapper-5 .check label::after,
+  .checkbox-wrapper-5 .check {
+    appearance: none;
+    display: inline-block;
+    border-radius: var(--size);
+    border: 0;
+    transition: .35s ease-in-out;
+    box-sizing: border-box;
+    cursor: pointer;
+    top: 15px
+  }
+
+  .checkbox-wrapper-5 .check label {
+    width: calc(2.2 * var(--size));
+    height: var(--size);
+    background: #d7d7d7;
+    overflow: hidden;
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"] {
+    position: absolute;
+    z-index: 1;
+    width: calc(.8 * var(--size));
+    height: calc(.8 * var(--size));
+    top: calc(.1 * var(--size));
+    left: calc(.1 * var(--size));
+    background: linear-gradient(45deg, #dedede, #ffffff);
+    box-shadow: 0 6px 7px rgba(0,0,0,0.3);
+    outline: none;
+    margin: 0;
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"]:checked {
+    left: calc(1.3 * var(--size));
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"]:checked + label {
+    background: transparent;
+  }
+
+  .checkbox-wrapper-5 .check label::before,
+  .checkbox-wrapper-5 .check label::after {
+    content: "· ·";
+    position: absolute;
+    overflow: hidden;
+    left: calc(.15 * var(--size));
+    top: calc(.5 * var(--size));
+    height: var(--size);
+    letter-spacing: calc(-0.04 * var(--size));
+    color: #9b9b9b;
+    font-family: "Times New Roman", serif;
+    z-index: 2;
+    font-size: calc(.6 * var(--size));
+    border-radius: 0;
+    transform-origin: 0 0 calc(-0.5 * var(--size));
+    backface-visibility: hidden;
+  }
+
+  .checkbox-wrapper-5 .check label::after {
+    content: "●";
+    top: calc(.65 * var(--size));
+    left: calc(.2 * var(--size));
+    height: calc(.1 * var(--size));
+    width: calc(.35 * var(--size));
+    font-size: calc(.2 * var(--size));
+    transform-origin: 0 0 calc(-0.4 * var(--size));
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::before,
+  .checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::after {
+    left: calc(1.55 * var(--size));
+    top: calc(.4 * var(--size));
+    line-height: calc(.1 * var(--size));
+    transform: rotateY(360deg);
+  }
+
+  .checkbox-wrapper-5 .check input[type="checkbox"]:checked + label::after {
+    height: calc(.16 * var(--size));
+    top: calc(.55 * var(--size));
+    left: calc(1.6 * var(--size));
+    font-size: calc(.6 * var(--size));
+    line-height: 0;
+  }
+
+  .nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    height: 30%
+  }
+  
+  .li {
+    float: right;
+  }
+  
+  .li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    margin: 10px;
+    font-size: 20px
+  }
+  
+  /* Change the link color to #111 (black) on hover */
+  
+
+  .burger-menu {
+    display: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: white;
+  }
+
+  /* Styles for small screens */
+@media only screen and (max-width: 600px) {
+    .nav-list {
+      display: none;
+      flex-direction: column;
+      width: 100%;  
+    }
+  
+    .nav-list.show {
+      display: flex;
+    }
+  
+    .nav-list li {
+      margin: 10px 0;
+    }
+  
+    .burger-menu {
+      display: block;
+    }
+  
+    nav {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .nav-list li:last-child {
+      margin-top: 10px 0;
+    }
+  }
+

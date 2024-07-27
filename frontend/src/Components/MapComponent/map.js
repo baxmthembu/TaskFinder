@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import { GoogleMap, LoadScript, Marker, useGoogleMap, InfoWindow } from '@react-google-maps/api';
 import styles from '../MapComponent/map.module.css';
 import Axios from 'axios'
+import { bottom } from '@popperjs/core';
 
 
 const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
@@ -12,11 +13,11 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
 
 
   const mapStyles = {
-    height: '500px',
-    width: '60%',
+    height: '300px',
+    width: '40%',
     position: 'absolute',
-    left: '20%',
-    top: '20%',
+    left: '30%',
+    bottom: '-10rem',
   };
 
   const defaultCenter = {
@@ -44,7 +45,7 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
           return value.status === 'online'
         }
         //this checks if the typed in value includes any lowecase version the data stored in my array
-          return value.occupation.toLowerCase().includes(searchQuery.toLowerCase()) && value.status === 'online';
+          return value.occupation.toLowerCase().includes(searchQuery.toLowerCase()) && value.status === 'online' && value.isavailable === true;
       })
     )
 
@@ -64,9 +65,9 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
   return (
     <>
     <div className={styles.app}>
-    <div className={styles.logo}>
+    {/*<div className={styles.logo}>
       <img src= {logo1} />
-    </div>
+    </div>*/}
     <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
         {/*If search field is empty remove marker or else display it in the user location*/}

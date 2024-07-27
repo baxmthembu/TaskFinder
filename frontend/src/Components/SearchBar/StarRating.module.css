@@ -5,7 +5,9 @@ button {
     cursor: pointer;
   }
   .on {
-    color: gold;
+    /*color: gold;*/
+    background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+
   }
   .off {
     color: #ccc;
