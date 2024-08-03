@@ -50,14 +50,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on("join_room", (data) => {
-    socket.join(data)
-    console.log(`User with id: ${socket.id} joined room: ${data}`)
+    socket.join(data.room)
+    console.log(`User with id: ${socket.id} joined room: ${data.room}`)
 })
 
   //listen from the frontend so we can emit all the messages that were submitted by the people
   socket.on("send_message", (data) => {
-      //to specifies where you wanna emit this event
-      socket.to(data.room).emit("recieve_message", data)
+    console.log(`Message received in room ${data.room}:`, data);
+    //to specifies where you wanna emit this event
+    socket.to(data.room).emit("receive_message", data)
         
 })        
 
@@ -239,7 +240,7 @@ app.get('/workers', async (req, res) => {
 app.get('/clients', async (req, res) => {
   try {
     const data = await db.select('*').from('user_info');
-    const workersData = data.map((worker) => ({
+    const clientsData = data.map((worker) => ({
       name: worker.name,
       surname: worker.surname,
       password: worker.password,
@@ -250,7 +251,7 @@ app.get('/clients', async (req, res) => {
       latitude: worker.latitude,
       longitude: worker.longitude,
     }));
-    res.json(workersData);
+    res.json(clientsData);
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({ error: 'Internal Server Error' });

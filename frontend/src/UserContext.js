@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
 const UserContext = createContext();
 
@@ -10,6 +10,7 @@ const UserProvider = ({ children }) => {
     setUser(newUser);
   };
 
+
   return (
     <UserContext.Provider value={{ user, setUser: updateUser }}>
       {children}
@@ -18,3 +19,18 @@ const UserProvider = ({ children }) => {
 };
 
 export { UserContext, UserProvider };
+
+/*() => {
+    // Retrieve user from localStorage on initial load
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  }*/
+
+  /*useEffect(() => {
+    // Store user in localStorage whenever it changes
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);*/

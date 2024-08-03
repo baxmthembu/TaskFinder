@@ -51,16 +51,8 @@ const Login = () => {
         const response = await Axios.post('http://localhost:3001/login', { ...formData, ...location });
 
         if (response.data.msg === "Authentication Successful") {
-          // Determine user role (example: check a flag or field)
-          const userRole = response.data.user.isFreelancer ? 'freelancer' : 'client';
-
-          // Set user in context
-          const user = {
-            ...response.data.user,
-            role: userRole
-          };
-          setUser(user);
-          console.log(user.role)
+          setUser(response.data.user);
+          //console.log(user.role)
 
           localStorage.setItem('userId', response.data.user.id); // Adjust to match role-based IDs
           toast.success(`Welcome ${response.data.user.name}`, {
@@ -103,9 +95,10 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const logo3 = require('../Images/logos.png');
+  const logo3 = require('../Images/TalentTrove.png');
 
   return (
+    <div>
     <div className={styles.app}>
       <div className={styles.logo}>
         <img src={logo3} alt="Logo" />
@@ -146,6 +139,7 @@ const Login = () => {
         theme="colored"
         transition={Bounce}
       />
+    </div>
     </div>
   );
 };

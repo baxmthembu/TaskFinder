@@ -26,3 +26,79 @@
     margin: 10px;
     font-size: 20px
   }
+
+  /*@media (max-width: 600px) {
+    .menu {
+      display: none;
+    } 
+  
+    .bm-burger-button {
+      display: block;
+      cursor: pointer;
+    }
+  
+  }
+
+/* Basic styles for the nav and burger menu */
+/*.nav {
+    position: relative;
+}
+
+.burger-menu {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.nav-list {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    background: #333;
+    color: white;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(-100%);
+}
+
+.nav-list.show {
+    display: block;
+    transform: translateX(0);
+}
+
+.li {
+    padding: 10px;
+}
+
+@media (max-width: 1024px) {
+    /* Display burger menu for devices smaller than or equal to 1024px (except laptops) *
+    .burger-menu {
+        display: block;
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1366px) {
+    /* Do not display burger menu for laptops (between 1025px and 1366px) *
+    .burger-menu {
+        display: none;
+    }
+    
+    .nav-list {
+        display: flex;
+        position: static;
+        height: auto;
+        width: auto;
+        background: none;
+        transform: none;
+    }
+
+    .li {
+        padding: 0 10px;
+    }
+}*/
+

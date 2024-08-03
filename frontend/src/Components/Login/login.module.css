@@ -1,7 +1,7 @@
 .logo{
   position: fixed;
-  right: 26px;
-  top: -3rem
+  right: -5%;
+  top: -10rem
 }
 
 .app {
@@ -13,7 +13,7 @@
     gap: 20px;
     height: 100vh;
     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
-    background-color: #CCCCFF; /*hsla(225, 100%, 94%, 0.801)*/
+    /*background-color: #CCCCFF; /*hsla(225, 100%, 94%, 0.801)*/
   }
   
   

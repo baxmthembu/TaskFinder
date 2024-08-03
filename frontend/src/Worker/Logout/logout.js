@@ -34,6 +34,7 @@ const Logout = () => {
 
         // Clear user context and redirect to login page
         setUser(null);
+        localStorage.removeItem('user'); // Clear user from localStorage
         navigate(user.role === 'freelancer' ? '/worker_login' : '/');
         } catch (error) {
             console.error('Error logging out:', error);

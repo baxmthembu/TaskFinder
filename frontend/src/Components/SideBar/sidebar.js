@@ -9,7 +9,7 @@ const Sidebar = () => {
   return (
     <div>
       <div className='bm-burger-button'>
-      <div className='bm-burger-bars' />
+      <div className='bm-burger-bars' ></div>
       </div>
     <Menu>
     <div className='menu'>

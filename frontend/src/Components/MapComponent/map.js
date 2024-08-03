@@ -17,7 +17,7 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
     width: '40%',
     position: 'absolute',
     left: '30%',
-    bottom: '-10rem',
+    bottom: '6rem',
   };
 
   const defaultCenter = {

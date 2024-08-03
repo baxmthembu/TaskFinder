@@ -2,6 +2,7 @@ import react, {useState} from 'react'
 import './nav.css'
 import WorkerLogout from '../../Worker/Worker_Logout/workerlogout';
 import { Link } from 'react-router-dom';
+import { elastic as Menu } from 'react-burger-menu';
 
 const Nav = () => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -12,6 +13,7 @@ const Nav = () => {
     
     return (
         <div>
+            <Menu>
             <nav className='nav'>
                 <div className="burger-menu" onClick={toggleMenu}>
                     ☰
@@ -25,6 +27,7 @@ const Nav = () => {
             </ul>
             
             </nav>
+            </Menu>
         </div>
     )
 

@@ -1,5 +1,11 @@
 body{
-  /*background-color: hsla(225, 100%, 94%, 0.801);*/
+  /*background-color: #E6E6FA;*/
+  background-color: #fde7f9;
+background-image: linear-gradient(315deg, #fde7f9 0%, #aacaef 74%);
+height: 100%;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 

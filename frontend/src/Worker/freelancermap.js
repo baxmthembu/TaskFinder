@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import io from 'socket.io-client';
+import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, } from 'react';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import Chat from '../Chat';
 
 
@@ -9,11 +9,15 @@ import Chat from '../Chat';
 const socket = io.connect('http://localhost:3001');
 
 
-const FreelancerMap = ({ initialLocation }) => {
+const FreelancerMap = ({ initialLocation, data }) => {
   const defaultCenter = {lat: -29.7400389, lng: 30.9818962}
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [clientLocation, setClientLocation] = useState(initialLocation);
   const [infoWindowOpen, setInfoWindowOpen] = useState(false);
+  const [workersData, setWorkersData] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState()
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('Initial client location:', initialLocation.id);
@@ -24,12 +28,39 @@ const FreelancerMap = ({ initialLocation }) => {
         lat: parseFloat(location.latitude),
         lng: parseFloat(location.longitude),
         name: location.name,
-        surname: location.surname
+        surname: location.surname,
+        id: location.id
         };
         console.log('Received client location:', newLocation);
+        if(!isNaN(newLocation.lat) && !isNaN(newLocation.lng)){
         setClientLocation(newLocation);
         setMapCenter(newLocation);
+        }else {
+          console.error('Invalid coordinates received:', newLocation);
+        }
     });
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/workers', {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const workersJson = await response.json();
+        setWorkersData(workersJson);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
     
         return () => {
           socket.off('receiveLocation');
@@ -61,12 +92,19 @@ const FreelancerMap = ({ initialLocation }) => {
   };
 
   const handleMessageClick = () => {
-    const clientId = localStorage.getItem('userId');
-    const workerId = initialLocation.id;
-    const roomId = `room-${clientId}-${workerId}}`;
-    socket.emit('join_room', roomId);
-    window.location.href = `/chat?roomId=${roomId}&workerId=${workerId}&workerName=${clientLocation.name}`;
-  };
+    const workerId = localStorage.getItem('workerId');
+    //const worker = workersData.find(worker => worker.id === workerId);
+    //const workerId = initialLocation.id;
+    if(workerId && clientLocation.id) {
+    const room /*roomId*/ = `room-${clientLocation.id}-${workerId}`;
+    setCurrentRoom(room)
+    socket.emit('join_room', room/*roomId*/);
+    //window.location.href = `/chat?roomId=${room/*roomId*/}&workerId=${workerId}&workerName=${worker.name}`;
+    navigate('/chat', { state: { room } });
+  }else{
+    console.error('Client ID or client location ID is undefined');
+  }
+}
 
   return (
     <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
@@ -86,7 +124,7 @@ const FreelancerMap = ({ initialLocation }) => {
           >
             <div>
               <h3>{`${clientLocation.name} ${clientLocation.surname}`}</h3>
-              <div className='buttons'>
+              <div className='buttons'>            
               <button className='button' onClick={handleMessageClick }>Message</button>
               </div>
             </div>
