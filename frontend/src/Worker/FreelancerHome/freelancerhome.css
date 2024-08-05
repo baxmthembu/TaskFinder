@@ -53,16 +53,20 @@ input:checked + .slider:before {
     border-radius: 50%;
 }*/
 
+
+
 .checkbox-wrapper-5 .check {
     --size: 40px;
 
-    position: relative;
+    position: absolute;
     /*background: linear-gradient(90deg, #f19af3, #f099b5);*/
     background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
-    left: 10px;
+    left: 20px;
+    top: 40em;
     line-height: 0;
     perspective: 400px;
     font-size: var(--size);
+
   }
 
   .checkbox-wrapper-5 .check input[type="checkbox"],
@@ -152,47 +156,9 @@ input:checked + .slider:before {
     line-height: 0;
   }
 
-  .nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #333;
-    height: 30%
-  }
-  
-  .li {
-    float: right;
-  }
-  
-  .li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    margin: 10px;
-    font-size: 20px
-  }
-  
-  /* Change the link color to #111 (black) on hover */
-  
-
-  .burger-menu {
-    display: none;
-    font-size: 2em;
-    cursor: pointer;
-    color: white;
-  }
 
   /* Styles for small screens */
-@media only screen and (max-width: 600px) {
+/*@media only screen and (max-width: 600px) {
     .nav-list {
       display: none;
       flex-direction: column;
@@ -219,5 +185,83 @@ input:checked + .slider:before {
     .nav-list li:last-child {
       margin-top: 10px 0;
     }
-  }
+  }*/
+
+  .nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    height: 30%;
+}
+
+.li {
+    float: right;
+}
+
+.li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    margin: 10px;
+    font-size: 20px;
+}
+
+/* Burger menu */
+.burger-menu {
+    display: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: white;
+    z-index: 2;
+}
+
+/* Show the burger menu on smaller screens */
+@media (max-width: 600px) {
+    .nav ul {
+        display: none;
+    }
+
+    .burger-menu {
+        display: block;
+    }
+
+    .nav-list.show {
+        display: block;
+        position: fixed;
+        height: 100%;
+        width: 250px;
+        top: 0;
+        left: 0;
+        background-color: #333;
+        padding: 2.5em 1.5em 0;
+        font-size: 1.15em;
+    }
+
+    .nav-list.show .li {
+        float: none;
+        margin-bottom: 10px;
+    }
+
+    .nav-list.show .li a {
+        color: #d1d1d1;
+        text-align: left;
+        text-decoration: none;
+        display: block;
+        transition: color 0.2s;
+    }
+
+    .nav-list.show .li a:hover {
+        color: #ffffff;
+    }
+}
+
+/* Styling of overlay */
+.bm-overlay {
+    background: rgba(0, 0, 0, 0.3);
+}
+
 

@@ -24,7 +24,9 @@ const About = () => {
             <div className={styles.body_container}>
             <div className={styles.About}>
                 <h1>About</h1>
-                <p>TaskFinder is an app that connects customers with freelancers requiring their services for any tasks.<br /> As they are currently high number of skilled or people with time that can offer their services for different type of tasks. For example queuing for you, picking up dry cleaning or plumber and more.</p>
+                <p>
+                Our app bridges the gap between clients and freelancers, offering a seamless platform for connecting people with professionals across a wide range of tasks.<br /> Whether you need help with basic household chores, daily errands, or specialized services like cooking, accounting, and more, our app provides an easy and efficient way to find the right freelancer for your needs. By bringing together skilled individuals and those seeking assistance, we ensure that every task, big or small, is handled with expertise and care.
+                </p>
             </div>
             <div className={styles.card_container}>
             <div className={styles.card}>

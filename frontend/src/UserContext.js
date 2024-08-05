@@ -5,6 +5,13 @@ const UserContext = createContext();
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+      if(userId){
+      setUser({id: userId, role:'client'});
+    }
+  }, []);
+
   const updateUser = (newUser) => {
     console.log('Setting user:', newUser);  // Add this line to log user info
     setUser(newUser);
@@ -19,18 +26,3 @@ const UserProvider = ({ children }) => {
 };
 
 export { UserContext, UserProvider };
-
-/*() => {
-    // Retrieve user from localStorage on initial load
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  }*/
-
-  /*useEffect(() => {
-    // Store user in localStorage whenever it changes
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [user]);*/

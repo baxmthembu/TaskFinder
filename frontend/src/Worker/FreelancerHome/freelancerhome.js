@@ -1,178 +1,16 @@
-/*import Axios from 'axios';
-import React, { useState, useContext, useEffect } from 'react';
-import './freelancerhome.css';
-import { UserContext } from '../../UserContext';
-import { FreelancerContext } from '../FreelancerContext';
-import WorkerLogout from '../Worker_Logout/workerlogout';
-import FreelancerMap from '../freelancermap';
-import io from 'socket.io-client';
-
-
-const socket = io('http://localhost:3001');
-
-const FreelancerHome = () => {
-    const [isAvailable, setIsAvailable] = useState(false); // Default to false initially
-    const { user } = useContext(UserContext);
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [clientLocation, setClientLocation] = useState([])
-    const [workersData, setWorkersData] = useState([])
-    const [clientsData, setClientsData] = useState([])
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-    useEffect(() => {
-        // Fetch initial availability status from the database
-        const fetchAvailability = async () => {
-            try {
-                const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
-                if (response.status === 200) {
-                    setIsAvailable(response.data.isAvailable);
-                } else {
-                    console.error('Failed to fetch availability');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        };
-
-        if (user) {
-            fetchAvailability();
-        }
-
-        const locationData = async () => {
-          try {
-              const response = await Axios.get('http://localhost:3001/clients', {
-                  headers: {
-                      'Content-Type': 'application/json',
-                      Accept: 'application/json',
-                  },
-              });
-
-              if (response.status !== 200) {
-                  throw new Error('Failed to fetch data');
-              }
-
-              const workersJson = await response.data;
-              /*setWorkersData(workersJson);*
-              setClientsData(workersJson)
-              console.log(workersJson); // Debugging log
-          } catch (error) {
-              console.error('Error fetching data:', error);
-          }
-      };
-
-      locationData();
-
-      const fetchData = async () => {
-        try {
-          const response = await fetch('http://localhost:3001/workers', {
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-          });
-  
-          if (!response.ok) {
-            throw new Error('Failed to fetch data');
-          }
-  
-          const workersJson = await response.json();
-          setWorkersData(workersJson);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      };
-  
-      fetchData();
-
-
-
-        socket.on('receiveLocation', (locationData) => {
-            setClientLocation({ lat: parseFloat(locationData.latitude), lng: parseFloat(locationData.longitude) });
-        });
-
-        socket.on('receiveAvailability', (availabilityData) => {
-          if (availabilityData.freelancerId === user.id) {
-            setIsAvailable(availabilityData.isAvailable);
-          }
-        });
-    
-        return () => {
-            socket.disconnect();
-        };
-
-    }, [user])
-
-
-    const toggleAvailability = async () => {
-        try {
-            const newAvailability = !isAvailable;
-            console.log('Toggling availability:', newAvailability , user.id); // Debugging log
-            const response = await Axios.post('http://localhost:3001/available', {
-                freelancerId: user.id,
-                isAvailable: newAvailability
-            });
-            if (response.status === 200) {
-                setIsAvailable(newAvailability);
-                socket.emit('updateAvailability', { freelancerId: user.id, isAvailable: newAvailability });
-            } else {
-                console.error('Failed to update availability');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
-
-    if (!user) {
-        return <div>Loading...</div>;
-    }
-
-    return (
-        <div>
-            <nav className='nav'>
-                <div className="burger-menu" onClick={toggleMenu}>
-                    ☰
-                </div>
-            <ul className={menuOpen ? "nav-list show" : "nav-list"}>
-                <li className='li'><a href="default.asp">Home</a></li>
-                <li className='li'><a href="news.asp">News</a></li>
-                <li className='li'><a href="contact.asp">Contact</a></li>
-                <li className='li'><a href="about.asp">About</a></li>
-                <li className='li'><WorkerLogout /></li>
-            </ul>
-            
-            </nav>
-                <div className="checkbox-wrapper-5">
-                    <div className="check">
-                        <input id="check-5" type="checkbox" checked={isAvailable} onChange={toggleAvailability} />
-                        <label htmlFor="check-5"></label>
-                    </div>
-                    <p>{isAvailable ? 'Available' : 'Unavailable'}</p>
-            </div>
-            <FreelancerMap /*clientLocation*initialLocation={/*workersData* clientsData}/>
-        </div>
-
-    );
-};
-
-export default FreelancerHome*/
-
 import Axios from 'axios';
 import React, { useState, useContext, useEffect } from 'react';
 import './freelancerhome.css';
-import { UserContext } from '../../UserContext';
-import { FreelancerContext } from '../FreelancerContext';
-import WorkerLogout from '../Worker_Logout/workerlogout';
+import { WorkerContext } from '../FreelancerContext';
 import FreelancerMap from '../freelancermap';
 import io from 'socket.io-client';
+import Sidebar from '../Freelancer_Sidebar/freelancer_sidebar';
 
 const socket = io('http://localhost:3001');
 
 const FreelancerHome = () => {
+    const {worker} = useContext(WorkerContext)
     const [isAvailable, setIsAvailable] = useState(false); // Default to false initially
-    const { user } = useContext(UserContext);
     const [menuOpen, setMenuOpen] = useState(false);
     const [clientLocation, setClientLocation] = useState([])
     const [workersData, setWorkersData] = useState([])
@@ -187,8 +25,8 @@ const FreelancerHome = () => {
         // Fetch initial availability status from the database
         const fetchAvailability = async () => {
             try {
-              if(user){
-                const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
+              if(worker && worker.id){
+                const response = await Axios.get(`http://localhost:3001/freelancers/${worker.id}/availability`)
                 if (response.status === 200) {
                     setIsAvailable(response.data.isAvailable);
                 } else {
@@ -221,7 +59,7 @@ const FreelancerHome = () => {
         });
 
         socket.on('receiveAvailability', (availabilityData) => {
-          if (availabilityData.freelancerId === user.id) {
+          if (availabilityData.freelancerId === worker.id) {
             setIsAvailable(availabilityData.isAvailable);
           }
         });
@@ -231,27 +69,35 @@ const FreelancerHome = () => {
           socket.off('receiveAvailability');
         };
 
-    }, [user]);
+    }, [worker]);
 
 
     const toggleAvailability = async () => {
+      if(worker && worker.role === 'freelancer') {
         try {
             const newAvailability = !isAvailable;
-            console.log('Toggling availability:', newAvailability , user.id); // Debugging log
+            console.log('Toggling availability:', newAvailability , worker.id); // Debugging log
             const response = await Axios.post('http://localhost:3001/available', {
-                freelancerId: user.id,
+                freelancerId: worker.id,
                 isAvailable: newAvailability
             });
             if (response.status === 200) {
                 setIsAvailable(newAvailability);
-                socket.emit('updateAvailability', { freelancerId: user.id, isAvailable: newAvailability });
+                socket.emit('updateAvailability', { freelancerId: worker.id, isAvailable: newAvailability });
             } else {
                 console.error('Failed to update availability');
             }
         } catch (error) {
             console.error('Error:', error);
         }
+      }else{
+        console.error('User is not a freelancer or not found')
+      }
     };
+
+    if (!worker || worker.role !== 'freelancer') {
+      return <div>User not found or not a freelancer</div>;
+  }
 
     /*if(loading){
       return <div>Loading...</div>
@@ -261,30 +107,23 @@ const FreelancerHome = () => {
         return <div>User not found</div>;
     }*/
 
+    const logo = require('../../Components/Images/TalentTrove.png')
+
     return (
       <>
         <div>
-            <nav className='nav'>
-                <div className="burger-menu" onClick={toggleMenu}>
-                    ☰
-                </div>
-            <ul className={menuOpen ? "nav-list show" : "nav-list"}>
-                <li className='li'><a href="default.asp">Home</a></li>
-                <li className='li'><a href="news.asp">News</a></li>
-                <li className='li'><a href="contact.asp">Contact</a></li>
-                <li className='li'><a href="about.asp">About</a></li>
-                <li className='li'><WorkerLogout /></li>
-            </ul>
-            
-            </nav>
+            <Sidebar />
+            <div className='image' style={{ textAlign: 'right', position: "relative", top: "-11em", left: "-1px",  }}>
+                <img src={logo} />
+              </div>
                 <div className="checkbox-wrapper-5">
-                    <div className="check">
+                    <div className="check" style={{top: '20%'}}>
                         <input id="check-5" type="checkbox" checked={isAvailable} onChange={toggleAvailability} />
                         <label htmlFor="check-5"></label>
                     </div>
-                    <p>{isAvailable ? 'Available' : 'Unavailable'}</p>
+                    <p style={{float: 'left',position: 'absolute', top: '24%', left: "22px"}}>{isAvailable ? 'Available' : 'Unavailable'}</p>
             </div>
-            <FreelancerMap /*clientLocation*/initialLocation={/*workersData*/ clientsData} />
+            <FreelancerMap initialLocation={clientsData} />
         </div>
       </>
 

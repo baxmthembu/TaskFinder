@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { UserContext } from "../../UserContext";
 
 const Login = () => {
+  const [clientId, setClientId] = useState('')
   const { setUser } = useContext(UserContext);
   const [captchaValue, setCaptchaValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,10 +52,10 @@ const Login = () => {
         const response = await Axios.post('http://localhost:3001/login', { ...formData, ...location });
 
         if (response.data.msg === "Authentication Successful") {
-          setUser(response.data.user);
           //console.log(user.role)
-
-          localStorage.setItem('userId', response.data.user.id); // Adjust to match role-based IDs
+          const userId = response.data.user.id
+          localStorage.setItem('userId', userId); // Adjust to match role-based IDs
+          setUser({id: userId, role: 'client'});
           toast.success(`Welcome ${response.data.user.name}`, {
             position: toast.POSITION.TOP_CENTER
           });

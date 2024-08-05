@@ -8,10 +8,12 @@ import styles from '../../Components/Login/login.module.css';
 import { Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../UserContext";
+import { WorkerContext } from "../FreelancerContext";
 
 
 const WorkerLogin = () => {
-    const {setUser} = useContext(UserContext)
+    const [workerId, setWorkerId] = useState('')
+    const {setWorker} = useContext(WorkerContext)
     const [isLoading, setIsLoading] = useState(false);
     const [captchaValue, setCaptchaValue] = useState('');
 
@@ -47,9 +49,10 @@ const WorkerLogin = () => {
                   // Set user in context                 
                   //Assuming response.data.user contains the user details
                     console.log('User logged in:', response.data.user.name);  // Log user info
+                    const workerId = response.data.user.id
                     // Handle successful login (e.g., set user session, redirect, etc.)
-                    setUser(response.data.user)
-                    localStorage.setItem('workerId', response.data.user.id);
+                    localStorage.setItem('workerId', workerId);
+                    setWorker({id:workerId, role:'freelancer'})
                     navigate('/freelancerhome')
                     console.log('logged in')
                     console.log(response.status)

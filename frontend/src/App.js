@@ -23,6 +23,8 @@ import WorkerLogin from './Worker/Login/worker_login';
 import Logout from './Worker/Logout/logout';
 import FreelancerHome from './Worker/FreelancerHome/freelancerhome';
 import {UserProvider} from './UserContext';
+import {FreelancerAbout} from './Worker/FreelancerAbout/freelancer_about';
+import { WorkerProvider } from './Worker/FreelancerContext';
 import { FreelancerProvider } from './Worker/FreelancerContext';
 
 function App() {
@@ -32,6 +34,7 @@ function App() {
         <div>
           <body>  
           <UserProvider>
+            <WorkerProvider>
               <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -47,7 +50,9 @@ function App() {
                 <Route path= '/worker_login' element={<WorkerLogin />} />
                 <Route path='/worker_logout' element={<Logout />} />
                 <Route path='/freelancerhome' element={<FreelancerHome />} />
+                <Route path='/freelancer_about' element={<FreelancerAbout />} />
               </Routes>
+              </WorkerProvider>
           </UserProvider>
           </body>
         </div>

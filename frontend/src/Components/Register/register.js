@@ -57,7 +57,7 @@ function Register() {
                 if(response.status === 200){
                     console.log('Register Successful')
                     toast.success('Registration Successful')
-                    localStorage.setItem('clientId', response.data.clientId)
+                    //localStorage.setItem('clientId', response.data.clientId)
                     navigate('/home')
                 }else{
                     console.error('Registration Failure')

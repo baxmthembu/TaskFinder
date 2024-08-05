@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import '../src/chat.css'
 import Nav from "./Components/Nav/nav";
-import Sidebar from "./Components/SideBar/sidebar";
+import Sidebar from "./Worker/Freelancer_Sidebar/freelancer_sidebar";
 //import socket from "./socket";
 
 const socket = io.connect('http://localhost:3001');
@@ -56,7 +56,7 @@ const Chat = () => {
         <div>
             <header>
                 <div className='header'>
-                    <aside><Sidebar pageWrapId={'page-wrap'} outerContainerId={'outer-container'} /></aside>
+                    <Sidebar />
                     <div className='image' style={{ textAlign: 'right', position: "relative", top: "-11em", left: "-1px",  }}>
                         <img src={logo3} />
                     </div>
