@@ -1,43 +1,38 @@
 import Axios from 'axios';
 import React, { useState, useContext, useEffect } from 'react';
 import './freelancerhome.css';
-import { WorkerContext } from '../FreelancerContext';
 import FreelancerMap from '../freelancermap';
 import io from 'socket.io-client';
 import Sidebar from '../Freelancer_Sidebar/freelancer_sidebar';
+import { UserContext } from '../../UserContext';
+import Freelancers from '../freelancerDelete/freelancerDelete';
 
 const socket = io('http://localhost:3001');
 
 const FreelancerHome = () => {
-    const {worker} = useContext(WorkerContext)
+    const {user} = useContext(UserContext)
     const [isAvailable, setIsAvailable] = useState(false); // Default to false initially
-    const [menuOpen, setMenuOpen] = useState(false);
     const [clientLocation, setClientLocation] = useState([])
-    const [workersData, setWorkersData] = useState([])
     const [clientsData, setClientsData] = useState([])
     const [loading, setLoading] = useState(true)
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
 
     useEffect( () => {
         // Fetch initial availability status from the database
         const fetchAvailability = async () => {
             try {
-              if(worker && worker.id){
-                const response = await Axios.get(`http://localhost:3001/freelancers/${worker.id}/availability`)
+              if(user && user.id){
+                const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`)
                 if (response.status === 200) {
                     setIsAvailable(response.data.isAvailable);
                 } else {
                     console.error('Failed to fetch availability');
                 }
                 const locationData = async () => {
-                  const response = await Axios.get('http://localhost:3001/clients');
+                  const responses = await Axios.get('http://localhost:3001/clients');
     
                   if (locationData.status === 200) {
-                      setClientsData(response.data)
-                      console.log(response.data)
+                      setClientsData(responses.data)
+                      console.log(responses.data)
                   }else{
                     throw new Error('Failed to fetch clients data')
                   }
@@ -54,12 +49,22 @@ const FreelancerHome = () => {
 
 
 
-        socket.on('receiveLocation', (locationData) => {
+        /*socket.on('receiveLocation', (locationData) => {
             setClientLocation({ lat: parseFloat(locationData.latitude), lng: parseFloat(locationData.longitude) });
+        });*/
+
+        socket.on('receiveLocation', (locationData) => {
+          if (locationData?.latitude && locationData?.longitude) {
+            setClientLocation({ 
+              lat: parseFloat(locationData.latitude), 
+              lng: parseFloat(locationData.longitude) 
+            });
+          }
         });
+        
 
         socket.on('receiveAvailability', (availabilityData) => {
-          if (availabilityData.freelancerId === worker.id) {
+          if (availabilityData.freelancerId === user.id) {
             setIsAvailable(availabilityData.isAvailable);
           }
         });
@@ -69,43 +74,32 @@ const FreelancerHome = () => {
           socket.off('receiveAvailability');
         };
 
-    }, [worker]);
+    }, [user]);
 
 
     const toggleAvailability = async () => {
-      if(worker && worker.role === 'freelancer') {
+      if(user && user.role === 'freelancer') {
         try {
             const newAvailability = !isAvailable;
-            console.log('Toggling availability:', newAvailability , worker.id); // Debugging log
+            console.log('Toggling availability:', newAvailability , user.id); // Debugging log
             const response = await Axios.post('http://localhost:3001/available', {
-                freelancerId: worker.id,
+                freelancerId: user.id,
                 isAvailable: newAvailability
             });
             if (response.status === 200) {
                 setIsAvailable(newAvailability);
-                socket.emit('updateAvailability', { freelancerId: worker.id, isAvailable: newAvailability });
+                socket.emit('updateAvailability', { freelancerId: user.id, isAvailable: newAvailability });
             } else {
                 console.error('Failed to update availability');
             }
         } catch (error) {
             console.error('Error:', error);
+            //setIsAvailable(!newAvailability); // Revert to previous state
         }
       }else{
         console.error('User is not a freelancer or not found')
       }
     };
-
-    if (!worker || worker.role !== 'freelancer') {
-      return <div>User not found or not a freelancer</div>;
-  }
-
-    /*if(loading){
-      return <div>Loading...</div>
-    }
-
-    if (!user) {
-        return <div>User not found</div>;
-    }*/
 
     const logo = require('../../Components/Images/TalentTrove.png')
 
@@ -114,7 +108,7 @@ const FreelancerHome = () => {
         <div>
             <Sidebar />
             <div className='image' style={{ textAlign: 'right', position: "relative", top: "-11em", left: "-1px",  }}>
-                <img src={logo} />
+                <img src={logo} alt='logo' />
               </div>
                 <div className="checkbox-wrapper-5">
                     <div className="check" style={{top: '20%'}}>
@@ -123,7 +117,12 @@ const FreelancerHome = () => {
                     </div>
                     <p style={{float: 'left',position: 'absolute', top: '24%', left: "22px"}}>{isAvailable ? 'Available' : 'Unavailable'}</p>
             </div>
-            <FreelancerMap initialLocation={clientsData} />
+            {/*<FreelancerMap initialLocation={clientsData} />*/}
+            <FreelancerMap initialLocation={clientsData.map(client => ({
+                lat: client.latitude,
+                lng: client.longitude,
+              }))} />
+
         </div>
       </>
 

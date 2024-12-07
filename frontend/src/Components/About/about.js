@@ -1,4 +1,3 @@
-//import classes from './About.module.css'
 import styles from './About.module.css'
 import NavBar from  '../NavBar/navbar';
 import DogWalker from '../Images/dogwalker'
@@ -6,7 +5,7 @@ import Nav from '../Nav/nav';
 import Sidebar from '../SideBar/sidebar';
 
 
-const logo1 = require('../Images/TalentTrove.png')
+const logo1 = require('../Images/Taskify.png')
 const cooking = require('../Images/cooking_1830839.png')
 const grass = require('../Images/grass_5617791.png')
 const plumber = require('../Images/plumber-man_5054602.png')

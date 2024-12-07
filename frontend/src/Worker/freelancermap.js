@@ -1,8 +1,7 @@
-import io from 'socket.io-client';
+/*import io from 'socket.io-client';
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import Chat from '../Chat';
 
 
 
@@ -20,8 +19,8 @@ const FreelancerMap = ({ initialLocation, data }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Initial client location:', initialLocation.id);
-    console.log('Data', clientLocation)
+    //console.log('Initial client location:', initialLocation.id);
+    //console.log('Data', clientLocation)
 
     socket.on('receiveLocation', (location) => {
       const newLocation = {
@@ -65,7 +64,7 @@ const FreelancerMap = ({ initialLocation, data }) => {
         return () => {
           socket.off('receiveLocation');
         };
-}, [/*clientLocation*/initialLocation]);
+}, [/*clientLocation*initialLocation]);
 
   const mapStyles = {
     height: '500px',
@@ -92,14 +91,11 @@ const FreelancerMap = ({ initialLocation, data }) => {
   };
 
   const handleMessageClick = () => {
-    const workerId = localStorage.getItem('workerId');
-    //const worker = workersData.find(worker => worker.id === workerId);
-    //const workerId = initialLocation.id;
+    const workerId = localStorage.getItem('id');
     if(workerId && clientLocation.id) {
-    const room /*roomId*/ = `room-${clientLocation.id}-${workerId}`;
+    const room  = `room-${clientLocation.id}-${workerId}`;
     setCurrentRoom(room)
-    socket.emit('join_room', room/*roomId*/);
-    //window.location.href = `/chat?roomId=${room/*roomId*/}&workerId=${workerId}&workerName=${worker.name}`;
+    socket.emit('join_room', room);
     navigate('/chat', { state: { room } });
   }else{
     console.error('Client ID or client location ID is undefined');
@@ -135,7 +131,138 @@ const FreelancerMap = ({ initialLocation, data }) => {
   );
 };
 
+export default FreelancerMap;*/
+
+import React, { useState, useEffect } from "react";
+import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { useNavigate } from "react-router-dom";
+import io from 'socket.io-client'
+import Axios from "axios";
+
+const socket = io.connect('http://localhost:3001');
+
+const FreelancerMap = ({ initialLocation, data }) => {
+  const defaultCenter = { lat: -29.7400389, lng: 30.9818962 };
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [clientLocation, setClientLocation] = useState(initialLocation);
+  const [selectedMarker, setSelectedMarker] = useState(null); // Tracks which marker is clicked
+  const [workersData, setWorkersData] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    socket.on("receiveLocation", (location) => {
+      const newLocation = {
+        lat: parseFloat(location.latitude),
+        lng: parseFloat(location.longitude),
+        name: location.name,
+        surname: location.surname,
+        id: location.id,
+      };
+      if (!isNaN(newLocation.lat) && !isNaN(newLocation.lng)) {
+        setClientLocation(newLocation);
+        setMapCenter(newLocation);
+      } else {
+        console.error("Invalid coordinates received:", newLocation);
+      }
+    });
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/workers", {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const workersJson = await response.json();
+        setWorkersData(workersJson);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      socket.off("receiveLocation");
+    };
+  }, [initialLocation]);
+
+  const mapStyles = {
+    height: "500px",
+    width: "60%",
+    position: "absolute",
+    left: "20%",
+    top: "20%",
+  };
+
+  const mapOptions = {
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+  };
+
+  const handleMarkerClick = (location) => {
+    setSelectedMarker(location); // Set the clicked marker as selected
+  };
+
+  const handleCloseClick = () => {
+    setSelectedMarker(null); // Deselect the marker
+  };
+
+  const handleMessageClick = () => {
+    const workerId = localStorage.getItem("id");
+    if (workerId && clientLocation.id) {
+      const room = `room-${clientLocation.id}-${workerId}`;
+      setCurrentRoom(room);
+      socket.emit("join_room", room);
+      navigate("/chat", { state: { room } });
+    } else {
+      console.error("Client ID or client location ID is undefined");
+    }
+  };
+
+  return (
+    <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
+      <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
+        {clientLocation && !isNaN(clientLocation.lat) && !isNaN(clientLocation.lng) && (
+          <Marker
+            position={{ lat: clientLocation.lat, lng: clientLocation.lng }}
+            title={`${clientLocation.name} ${clientLocation.surname}`}
+            icon="https://img.icons8.com/color/48/null/user-male-circle--v1.png"
+            onClick={() => handleMarkerClick(clientLocation)} // Pass marker data
+          />
+        )}
+        {selectedMarker && (
+          <InfoWindow
+            position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+            onCloseClick={handleCloseClick}
+          >
+            <div>
+              <h3>{`${selectedMarker.name} ${selectedMarker.surname}`}</h3>
+              <div className="buttons">
+                <button className="button" onClick={handleMessageClick}>
+                  Message
+                </button>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </LoadScript>
+  );
+};
+
 export default FreelancerMap;
+
 
 
 

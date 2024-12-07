@@ -1,63 +1,41 @@
+import React, {useEffect} from "react";
+import { UserProvider } from "./UserContext";
+import AuthProvider from "./provider/AuthProvider";
+import Routes from "./routes/routes";
+import Axios from "axios";
+import './App.css'
+import UpdateStatusOnClose from "./Worker/close_page";
 
-/*import Youtube from './Components/Youtube/youtube';*/
-import SearchJobs from './Components/SearchBar/searchbar'
-import Data from "./users.json";
-import WorkerRegister from './Worker/Register/workerRegister';
-import './App.css';
-import { Routes, Route, BrowserRouter as Router} from 'react-router-dom';
-import Register from './Components/Register/register';
-import Login from './Components/Login/login';
-import { ToastContainer } from 'react-toastify';
-import Plumber from './Components/Home/home';
-import Profile from './Components/Profile/profile';
-import About from './Components/About/about';
-import ClientComponent from './Components/Home2/home2';
-import { Switch } from '@mui/material';
-import Footers from './Components/Footer/footer'
-import FreelancerComponent from './WorkerHome/workerhome';
-import FreelancerLocationTracker from './WorkerHome/workerhome';
-import MapContainer from './Components/MapComponent/map';
-//import Chat from './Components/Message/message2';
-import Chat from './Chat';
-import WorkerLogin from './Worker/Login/worker_login';
-import Logout from './Worker/Logout/logout';
-import FreelancerHome from './Worker/FreelancerHome/freelancerhome';
-import {UserProvider} from './UserContext';
-import {FreelancerAbout} from './Worker/FreelancerAbout/freelancer_about';
-import { WorkerProvider } from './Worker/FreelancerContext';
-import { FreelancerProvider } from './Worker/FreelancerContext';
+function App(){
+  //UseEffect hook attaches an event listener for the beforeunload event which triggers when the user attempts to close the page or browser
+  //handleBeforeUnload function clears all the necessary items from my localstorage
+  //beforeunload event ensures that the data is cleared before the page closes
+  //localstorage will not be cleared if user reloads page
+  /*useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear specific keys from localStorage when the page is closed
+      localStorage.removeItem('id');
+      localStorage.removeItem('role');
+      localStorage.removeItem('token');
+    };
 
-function App() {
-    return (
-      <>
-        <ToastContainer position="top-center" theme='colored' />
-        <div>
-          <body>  
-          <UserProvider>
-            <WorkerProvider>
-              <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/searchbar" element={<SearchJobs data={Data} />} />
-                <Route path="/register" element={<Register />} />    
-                <Route path='/home' element={<Plumber />} />
-                <Route path='/about' element={<About />} />
-                <Route path='/profile' element={<Profile />} />
-                <Route path='/workerRegister' element={<WorkerRegister />} />
-                <Route path='/workerhome' element={<FreelancerLocationTracker/>} />
-                <Route path='/home2' element={<ClientComponent />} />
-                <Route path='/chat' element={<Chat />} />
-                <Route path= '/worker_login' element={<WorkerLogin />} />
-                <Route path='/worker_logout' element={<Logout />} />
-                <Route path='/freelancerhome' element={<FreelancerHome />} />
-                <Route path='/freelancer_about' element={<FreelancerAbout />} />
-              </Routes>
-              </WorkerProvider>
-          </UserProvider>
-          </body>
-        </div>
-      </>
-    )
+    // Add event listener for page unload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);*/
+
+  return(
+    <AuthProvider>
+        <UserProvider>
+          <UpdateStatusOnClose />
+          <Routes />
+        </UserProvider>
+    </AuthProvider>
+  )
 }
 
 

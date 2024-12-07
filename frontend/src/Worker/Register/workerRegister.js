@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {toast, Bounce} from 'react-toastify';
 import Axios, { AxiosError } from 'axios';
 import cloneDeep from 'lodash/cloneDeep';
@@ -84,16 +84,16 @@ function WorkerRegister({history}){
       .then(res => {
         if(res.data.status === 200) {
           console.log('Success')
-          navigate('/freelancerhome.js')
           toast.success('Registered Successfuly', {
             position: toast.POSITION.TOP_CENTER
           })
-          navigate('/home')
+          navigate('/worker_login.js')
         }else{
           console.log('Failed')
-          toast.success('Registered Successfuly', {
+          toast.error('Failed to register', {
             position: toast.POSITION.TOP_CENTER
           })
+          
           //navigate('/worker_login')
           
           return;
@@ -136,12 +136,16 @@ function WorkerRegister({history}){
       });
     };  
 
-    const logo = require("../../Components/Images/logos.png")
-    const logo1 = require("../../Components/Images/logo.png") 
+    const logo1 = require('../../Components/Images/Taskify.png');
 
 
     return (
         <div className={styles.app}>
+          <div className={styles.back_button}>
+            <Link to="/worker_login">
+              <button className={styles.button28}>Back</button>
+           </Link>
+          </div>
           <div className={styles.logo}>
             <img src= {logo1} />
           </div>

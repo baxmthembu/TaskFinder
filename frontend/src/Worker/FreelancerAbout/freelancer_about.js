@@ -3,7 +3,7 @@ import About from "../../Components/About/about";
 import Sidebar from "../Freelancer_Sidebar/freelancer_sidebar";
 import './freelancerabout.css'
 
-const logo = require('./../../Components/Images/TalentTrove.png');
+const logo = require('./../../Components/Images/Taskify.png');
 const cooking = require('./../../Components/Images/cooking_1830839.png');
 const grass = require('./../../Components/Images/grass_5617791.png');
 const plumber = require('./../../Components/Images/plumber-man_5054602.png');

@@ -22,6 +22,10 @@ const passport = require('passport');
 const http = require('http')
 const socketIo = require('socket.io')
 const server = http.createServer(app)
+const jwt = require('jsonwebtoken')
+const { check, validationResult } = require('express-validator');
+const { error } = require('console');
+
 
 const io = socketIo(server, {
   cors: {
@@ -105,6 +109,34 @@ const storage = diskStorage({
 const upload = multer({
   storage: storage
 })
+
+const userAuthenticateToken = (req,res,next) => {
+  const token = req.headers['userAuthorization'];
+
+  if(!token) return res.sendStatus(401)
+
+  jwt.verify(token,process.env.JWT_SECRET_KEY, (err,user) => {
+    if(err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  })
+}
+
+const workerAuthenticateToken = (req,res,next) => {
+  const token = req.headers['workerAuthorization']
+
+  if(!token) return res.sendStatus(401)
+
+  jwt.verify(token.process.env.JWT_SECRET_KEY, (err,next) => {
+    if(err) return res.sendStatus(403)
+      req.user = user;
+      next()
+  })
+}
+
+app.get('/protected', userAuthenticateToken, (req, res) => {
+  res.send('This is a protected route');
+});
 
 //POST: Post user info into database
 app.post('/register', async (req, res) => {
@@ -250,6 +282,7 @@ app.get('/clients', async (req, res) => {
       id: worker.id,
       latitude: worker.latitude,
       longitude: worker.longitude,
+      role: worker.role
     }));
     res.json(clientsData);
   } catch (error) {
@@ -260,7 +293,15 @@ app.get('/clients', async (req, res) => {
 
 
 
-app.post('/login', async (req, res) => {
+app.post('/login',[
+  check('username').isLength({min:3}).trim().escape(),
+  check('password').isLength({min:6}).trim()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if(!errors.isEmpty()){
+    return res.status(400).json({errors: errors.array()})
+  }
+
   const { password, username, latitude, longitude } = req.body;
 
   if(!username || !password){
@@ -269,9 +310,9 @@ app.post('/login', async (req, res) => {
 
   try {
     const user = await db
-      .select('id','password', 'username')
+      .select('id','password', 'username','role')
       .from('user_info')
-      .where('username',username)
+      .where({username})
       .first();
 
     if (!user) {
@@ -285,16 +326,24 @@ app.post('/login', async (req, res) => {
         .where('id', user.id)
         .update({ latitude, longitude, status: 'online' });
 
+      const token = jwt.sign(
+        {id:user.id, name:user.username, role: user.role},
+        process.env.JWT_SECRET_KEY,
+        {expiresIn: '1h'}
+      )
+
       res.json({
         msg: 'Authentication Successful',
         user: {
           id: user.id,
           name: user.username,
           status: 'online',
-          role: 'client'
+          role: user.role,
+          token: token
           // Add other user details if needed
         }
       });
+      console.log('User logged in successfuly')
     } else {
       // Authentication failed
       res.status(401).json({ msg: 'Authentication Failed' });
@@ -333,7 +382,15 @@ app.get('/nearbyWorkers', async (req, res) => {
 
 
 // Login Endpoint
-app.post('/workerlogin', async (req, res) => {
+app.post('/workerlogin',[
+  check('name').isLength({min:3}).trim().escape(),
+  check('password').isLength({min: 6}).trim(),
+], async (req, res) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()){
+    return res.status(400).json({errors: errors.array()})
+  }
+
   const { name, password } = req.body;
 
   if (!name || !password) {
@@ -343,7 +400,7 @@ app.post('/workerlogin', async (req, res) => {
 
   try {
     const user = await db('freelancers')
-      .select('id','name','password')
+      .select('id','name','password','role')
       .where('name', name) // Simplified for demo purposes, use hashed passwords in production
       .first();
       
@@ -355,13 +412,20 @@ app.post('/workerlogin', async (req, res) => {
         .where({ id: user.id })
         .update({ status: 'online' });
 
+      const token = jwt.sign(
+        {id: user.id, name: user.name, role: user.role},
+        process.env.JWT_SECRET_KEY,
+        {expiresIn: '1h'}
+      )
+
       res.json({
         msg: 'Authentication Successful',
         user: {
           id: user.id,
           name: user.name,
           status: 'online',
-          role: 'freelancer',
+          role: user.role,
+          token: token,
           // Add other user details if needed
         }
       });
@@ -414,7 +478,9 @@ app.post('/clientlogout', async (req, res) => {
 
     await db('user_info')
       .where('id', clientId)
-      .update({status: 'offline'})
+      .update({
+        status: 'offline',
+      });
 
     res.json({ msg: 'Logout Successful' });
   } catch (error) {
@@ -478,6 +544,50 @@ app.get('/freelancer/:id/availability', async (req, res) => {
     res.status(500).json({ msg: 'An error occurred' });
   }
 });
+
+app.delete('/freelancers/:freelancerId', async (req, res) => {
+  const freelancerId = parseInt(req.params.freelancerId, 10);
+
+  if (isNaN(freelancerId)) {
+    return res.status(400).json({ message: 'Invalid freelancer ID' });
+  }
+
+  try {
+    const deletedUser = await db('freelancers').where('id', freelancerId).del();
+
+    if (deletedUser) {
+      res.status(200).json({ message: 'Freelancer deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Freelancer not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting freelancer:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.put('/freelancers/:freelancerId/status', async (req, res) => {
+  const freelancerId = parseInt(req.params.freelancerId, 10);
+
+  if (isNaN(freelancerId)) {
+    return res.status(400).json({ message: 'Invalid freelancer ID' });
+  }
+
+  try {
+    await db('freelancers')
+      .where('id', freelancerId)
+      .update({
+        status: 'offline',
+        isavailable: false,
+      });
+
+    res.status(200).json({ message: 'Freelancer status updated to offline' });
+  } catch (error) {
+    console.error('Error updating freelancer status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 const port = 3001
 server.listen(port, () => {

@@ -1,0 +1,36 @@
+.navigator-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    text-align: center; /* Center text within the container */
+    position: absolute;
+    bottom: 20%;
+    left: 33%
+}
+
+.navigator-content {
+    display: flex;
+    flex-direction: column; /* Stack the image and text vertically */
+    align-items: center; /* Center the image and text horizontally */
+}
+
+.navigator-image {
+    max-width: 900px; /* Adjust the size of the image */
+    margin-bottom: -190px; /* Space between the image and the h1 */
+}
+
+.navigator-header h1 {
+    font-size: 30px;
+    color: #333;
+}
+
+.navigator-header a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.navigator-header a:hover {
+    text-decoration: underline;
+}

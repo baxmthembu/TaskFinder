@@ -65,9 +65,6 @@ const MapContainer = ({ data, searchQuery, userLocation, nearbyWorkers }) => {
   return (
     <>
     <div className={styles.app}>
-    {/*<div className={styles.logo}>
-      <img src= {logo1} />
-    </div>*/}
     <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0">
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
         {/*If search field is empty remove marker or else display it in the user location*/}

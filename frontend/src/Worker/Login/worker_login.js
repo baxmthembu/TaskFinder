@@ -7,14 +7,17 @@ import Axios from 'axios';
 import styles from '../../Components/Login/login.module.css';
 import { Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from "react-router-dom";
-import { UserContext } from "../../UserContext";
-import { WorkerContext } from "../FreelancerContext";
+//import { WorkerContext } from "../FreelancerContext";
+import { useAuth } from "../../provider/AuthProvider.js";
+import { UserContext } from "../../UserContext.js";
 
 
 const WorkerLogin = () => {
-    const [workerId, setWorkerId] = useState('')
-    const {setWorker} = useContext(WorkerContext)
+    //const [workerId, setWorkerId] = useState('')
+    //const {setWorker} = useContext(WorkerContext)
+    const { setUser } = useContext(UserContext);
     const [isLoading, setIsLoading] = useState(false);
+    const {setToken} = useAuth()
     const [captchaValue, setCaptchaValue] = useState('');
 
     const [formData, setFormData]= useState({
@@ -50,14 +53,25 @@ const WorkerLogin = () => {
                   //Assuming response.data.user contains the user details
                     console.log('User logged in:', response.data.user.name);  // Log user info
                     const workerId = response.data.user.id
+                    const workerToken = response.data.user.token
+                    const workerRole = response.data.user.role
+                    //localStorage.setItem('workerRole', workerRole)
+                    localStorage.setItem('role', workerRole)
                     // Handle successful login (e.g., set user session, redirect, etc.)
-                    localStorage.setItem('workerId', workerId);
-                    setWorker({id:workerId, role:'freelancer'})
+                    //localStorage.setItem('workerId', workerId);
+                    localStorage.setItem('id', workerId)
+                    //setWorker({id:workerId, role: workerRole})
+                    setUser({id:workerId, role:workerRole})
+                    localStorage.setItem('token', workerToken)
+                    setToken(workerToken)
                     navigate('/freelancerhome')
                     console.log('logged in')
                     console.log(response.status)
                 }else{
                     console.error('Failed')
+                    toast.error("Error logging in", {
+                      position: toast.POSITION.TOP_RIGHT,
+                    })
                 }
             }
         } catch (error) {
@@ -76,13 +90,18 @@ const WorkerLogin = () => {
         setCaptchaValue(value);
     }
     
-    const logo3 = require('../../Components/Images/logo.png')
+    const logo3 = require('../../Components/Images/Taskify.png')
     
     return (
         <div className={styles.app}>
-        <div className={styles.logo}>
-          <img src= {logo3} />
-        </div>
+          <div className={styles.back_button}>
+            <Link to="/">
+              <button className={styles.button28}>Back</button>
+           </Link>
+          </div>
+          <div className={styles.logo}>
+            <img src={logo3} alt="Logo" />
+          </div>
         <div className={styles.loginform}>
         <form onSubmit={Login}>
           <div className={styles.inputcontainer}>
@@ -108,7 +127,7 @@ const WorkerLogin = () => {
             )}</button>
           </div>
           <div className={styles.createaccount}>
-            <Link to="/register" className={styles.text}>create account</Link>
+            <Link to="/workerRegister" className={styles.text}>create account</Link>
           </div>
           <div>
           </div>

@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link, Route, NavLink } from 'react-router-dom';
 import'./sidebar.css'
 import { elastic as Menu } from 'react-burger-menu';
-import Logout from '../../Worker/Logout/logout'
-
+import Logout from '../../Worker/Logout/logout';
+import { UserContext } from '../../UserContext';
 const Sidebar = () => {
+  const { user } = useContext(UserContext); // Get user info from UserContext
+
+  // Determine the home link based on the user role
+  const homeLink = user?.role === 'freelancer' ? '/freelancerhome' : '/home';
+  const aboutLink = user?.role === 'freelancer' ? '/freelancer_about' : '/about'
+
 
   return (
     <div>
@@ -15,7 +21,7 @@ const Sidebar = () => {
     <div className='menu'>
       <ul style={{ listStyle: 'none', padding: 0 }} className='menu'>
         <li>
-          <Link to="/home" className='menu-item'>Home</Link>
+          <Link to={homeLink} className='menu-item'>Home</Link>
         </li>
         <li>
           <Link to="/about" className='menu-item'>About</Link>

@@ -137,7 +137,7 @@ const Plumber = (props) => {
     const handleSendLocation = async (workerId, workerName) => {        
             try {
                 // Retrieve the client ID from localStorage
-                const clientId = localStorage.getItem('userId');
+                const clientId = localStorage.getItem('id');
                 if (!clientId) {
                     console.error('Client ID not found in localStorage');
                     return;
@@ -166,6 +166,7 @@ const Plumber = (props) => {
     const logo1 = require("../Images/logo.png");
     const logo2 = require("../Images/taskfinders.png")
     const logo3 = require("../Images/TalentTrove.png")
+    const logo4 = require("../Images/Taskify.png")
 
     return (
         <>
@@ -174,7 +175,7 @@ const Plumber = (props) => {
                     <div className='header'>
                     <aside><SideBar pageWrapId={'page-wrap'} outerContainerId={'outer-container'} /></aside>
                     <div className='image' style={{ textAlign: 'right', position: "relative", top: "-11em", left: "-1px",  }}>
-                        <img src={logo3} />
+                        <img src={logo4} />
                     </div>
                     </div>
                 </header>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 import styles from '../Login/login.module.css';
@@ -8,12 +8,14 @@ import { Spinner } from 'react-bootstrap';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { UserContext } from "../../UserContext";
+import { useAuth } from "../../provider/AuthProvider.js";
 
 const Login = () => {
-  const [clientId, setClientId] = useState('')
+  //const [clientId, setClientId] = useState('')
   const { setUser } = useContext(UserContext);
   const [captchaValue, setCaptchaValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const {setToken} = useAuth()
   const [userLocation, setUserLocation] = useState({ latitude: null, longitude: null });
   const [formData, setFormData] = useState({
     username: '',
@@ -54,12 +56,19 @@ const Login = () => {
         if (response.data.msg === "Authentication Successful") {
           //console.log(user.role)
           const userId = response.data.user.id
-          localStorage.setItem('userId', userId); // Adjust to match role-based IDs
-          setUser({id: userId, role: 'client'});
+          const userToken = response.data.user.token
+          const userRole = response.data.user.role
+          //localStorage.setItem('userRole', userRole)
+          localStorage.setItem('role', userRole)
+          //localStorage.setItem('userId', userId); // Adjust to match role-based IDs
+          localStorage.setItem('id', userId)
+          setUser({id: userId, role: userRole});
+          localStorage.setItem('token', userToken)
+          setToken(userToken)
           toast.success(`Welcome ${response.data.user.name}`, {
             position: toast.POSITION.TOP_CENTER
           });
-          usenavigate('/home');
+          usenavigate('/home', {replace:true});
         } else {
           console.error('Authentication failed');
           toast.error('Log In Error', {
@@ -96,11 +105,16 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const logo3 = require('../Images/TalentTrove.png');
+  const logo3 = require('../Images/Taskify.png');
 
   return (
     <div>
     <div className={styles.app}>
+      <div className={styles.back_button}>
+        <Link to="/">
+           <button className={styles.button28}>Back</button>
+        </Link>
+      </div>
       <div className={styles.logo}>
         <img src={logo3} alt="Logo" />
       </div>
