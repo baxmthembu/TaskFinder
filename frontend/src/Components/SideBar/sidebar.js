@@ -4,6 +4,7 @@ import'./sidebar.css'
 import { elastic as Menu } from 'react-burger-menu';
 import Logout from '../../Worker/Logout/logout';
 import { UserContext } from '../../UserContext';
+import Freelancers from '../../Worker/freelancerDelete/freelancerDelete';
 const Sidebar = () => {
   const { user } = useContext(UserContext); // Get user info from UserContext
 
@@ -35,6 +36,9 @@ const Sidebar = () => {
         </li>
         <li>
           <Link to="/workerhome" className='menu-item'>Map</Link>
+        </li>
+        <li>
+          <Freelancers className='menu-items' />
         </li>
       </ul>
     </div>

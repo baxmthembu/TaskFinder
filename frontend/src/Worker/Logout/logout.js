@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../UserContext';
 //import { WorkerContext } from '../FreelancerContext';
 import './logout.css'
+import Freelancers from '../freelancerDelete/freelancerDelete';
 //import { right } from '@popperjs/core';
 
 
@@ -43,9 +44,13 @@ const Logout = () => {
         }
     }
     return(
-        <div style={styles.button}>
-            <button className='button-77'  onClick={handleLogout}>Logout</button>
-        </div>
+        <>
+            <div style={styles.button}>
+                <button className='button-77'  onClick={handleLogout}>Logout</button>
+            </div>
+            <p>or</p>
+            <Freelancers />
+        </>
     )
   };
 

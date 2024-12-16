@@ -18,6 +18,7 @@ const Sidebar = () => {
     { path: '/home', label: 'Home' },
     { path: '/about', label: 'About' },
     { path: '/profile', label: 'Profile' },
+    {path: '/map', label: 'Map'}
   ];
 
 
@@ -54,11 +55,11 @@ const Sidebar = () => {
             <li className="logout">
               <Logout className="menu-items" />
             </li>
-            {role === 'freelancer' && (
+            {/*{role === 'freelancer' && (
               <li className="delete">
                 <Freelancers />
               </li>
-            )}
+            )}*/}
           </ul>
         </div>
       </Menu>

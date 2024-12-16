@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SideBar from '../SideBar/sidebar'; // Assuming you have a SideBar component
+import Sidebar from '../../Worker/Freelancer_Sidebar/freelancer_sidebar';
 import PayPal from '../Paypal/paypal'; // Assuming you have a PayPal component
 import StarRating from '../SearchBar/starrating'; // Assuming you have a StarRating component
 import '../Home/plumber.css';
@@ -173,7 +174,7 @@ const Plumber = (props) => {
             <div className="body-container">
                 <header>
                     <div className='header'>
-                    <aside><SideBar pageWrapId={'page-wrap'} outerContainerId={'outer-container'} /></aside>
+                    <aside><Sidebar pageWrapId={'page-wrap'} outerContainerId={'outer-container'} /></aside>
                     <div className='image' style={{ textAlign: 'right', position: "relative", top: "-11em", left: "-1px",  }}>
                         <img src={logo4} />
                     </div>
