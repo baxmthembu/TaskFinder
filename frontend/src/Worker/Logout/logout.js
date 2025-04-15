@@ -30,15 +30,17 @@ const Logout = () => {
                 });
                 setUser(null)
                 localStorage.clear()
+                navigate('/worker_login')
             }else if(user?.role === 'client'){
                 await Axios.post('http://localhost:3001/clientlogout', {
                     clientId: user.id,
                 })
                 setUser(null)
                 localStorage.clear()
+                navigate('/login')
                 throw new Error('Failed to logout')
             }
-            navigate('/navigator')
+            //navigate('/navigator')
         } catch (error) {
             console.error('Error logging out:', error);
         }

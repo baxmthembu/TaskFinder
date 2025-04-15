@@ -164,7 +164,7 @@ const Chat = () => {
         }
     };
 
-    const logo3 = require('./Components/Images/TalentTrove.png')
+    const logo3 = require('./Components/Images/Taskify.png')
 
     return (
         <div>

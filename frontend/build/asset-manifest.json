@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.css": "/TaskFinder/static/css/main.207912af.css",
+    "main.js": "/TaskFinder/static/js/main.c771e73f.js",
+    "static/js/787.00dd80bf.chunk.js": "/TaskFinder/static/js/787.00dd80bf.chunk.js",
+    "static/media/plumber-man_5054602.png": "/TaskFinder/static/media/plumber-man_5054602.cf8b153835053df5d448.png",
+    "static/media/grass_5617791.png": "/TaskFinder/static/media/grass_5617791.9ba43ef58d8b0741b7be.png",
+    "static/media/cooking_1830839.png": "/TaskFinder/static/media/cooking_1830839.343efc60b8b70dd39875.png",
+    "static/media/queue.png": "/TaskFinder/static/media/queue.a07a6484552cd52f5419.png",
+    "static/media/taskfinders.png": "/TaskFinder/static/media/taskfinders.652dd4486ec7044c8002.png",
+    "index.html": "/TaskFinder/index.html",
+    "main.207912af.css.map": "/TaskFinder/static/css/main.207912af.css.map",
+    "main.c771e73f.js.map": "/TaskFinder/static/js/main.c771e73f.js.map",
+    "787.00dd80bf.chunk.js.map": "/TaskFinder/static/js/787.00dd80bf.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.207912af.css",
+    "static/js/main.c771e73f.js"
+  ]
+}
