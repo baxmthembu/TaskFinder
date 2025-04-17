@@ -29,7 +29,7 @@ const { error } = require('console');
 
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: /*"http://localhost:3000"*/ 'https://baxmthembu.github.io',
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true
@@ -76,18 +76,18 @@ app.use(json());
 //app.use(_json())
 app.use(urlencoded({ extended: false }));
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://baxmthembu.github.io',
   credentials: true
 }));
 app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Origin', /*'http://localhost:3000'*/ 'https://baxmthembu.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
   next();
 });
 app.use(express.static('public'));
 
-const db = knex({
+/*const db = knex({
   client: 'pg',
   connection: {
       host: process.env.DATABASE_HOST,
@@ -95,7 +95,16 @@ const db = knex({
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE,
   },
+});*/
+
+const db = knex({
+  client: 'pg',
+  connection: {
+      connectionString: process.env.DATABASE_URL, // Prefer this format
+      ssl: { rejectUnauthorized: false } // Important for Render PG
+  },
 });
+
 
 const storage = diskStorage({
   destination: (req,file,cb) => {
@@ -415,7 +424,7 @@ app.post('/workerlogin',[
       const token = jwt.sign(
         {id: user.id, name: user.name, role: user.role},
         process.env.JWT_SECRET_KEY,
-        {expiresIn: '1h'}
+        //{expiresIn: '1h'}
       )
 
       res.json({
@@ -609,7 +618,7 @@ app.put('/freelancers/:freelancerId/status', async (req, res) => {
 });
 
 
-const port = 3001
+const port = process.env.PORT || 5000
 server.listen(port, () => {
   console.log(`Server listening on port ${port}`)
 })
