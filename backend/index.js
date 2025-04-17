@@ -86,6 +86,7 @@ app.use(function (req, res, next) {
   next();
 });
 app.use(express.static('public'));
+app.use(express.json())
 
 /*const db = knex({
   client: 'pg',
@@ -100,10 +101,14 @@ app.use(express.static('public'));
 const db = knex({
   client: 'pg',
   connection: {
-      connectionString: process.env.DATABASE_URL, // Prefer this format
-      ssl: { rejectUnauthorized: false } // Important for Render PG
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
   },
 });
+
+
+
+console.log('Using DATABASE_URL:', process.env.DATABASE_URL);
 
 
 const storage = diskStorage({
@@ -306,17 +311,22 @@ app.post('/login',[
   check('username').isLength({min:3}).trim().escape(),
   check('password').isLength({min:6}).trim()
 ], async (req, res) => {
+  console.log('log in endpoint hit')
   const errors = validationResult(req);
   if(!errors.isEmpty()){
+    console.log('validation errors: ', errors.array())
     return res.status(400).json({errors: errors.array()})
   }
 
   const { password, username, latitude, longitude } = req.body;
+  console.log('request body:', req.body)
 
   if(!username || !password){
+    console.log('missing credintials')
     return res.status(400).json({msg:'Please provide both name and password'})
   }
-
+  console.log('Login request body:', req.body);
+  console.log("This is a test log")
   try {
     const user = await db
       .select('id','password', 'username','role')
@@ -324,7 +334,12 @@ app.post('/login',[
       .where({username})
       .first();
 
+      console.log('testing db connection')
+      await db.raw('select 1+1 as result')
+      console.log('db connection ok')
+
     if (!user) {
+      console.log('user not found')
       return res.status(401).json({ msg: 'Authentication Failed' });
     }
 
@@ -341,6 +356,8 @@ app.post('/login',[
         {expiresIn: '1h'}
       )
 
+      console.log('login successful')
+
       res.json({
         msg: 'Authentication Successful',
         user: {
@@ -354,11 +371,13 @@ app.post('/login',[
       });
       console.log('User logged in successfuly')
     } else {
+      console.log('invalid password')
       // Authentication failed
       res.status(401).json({ msg: 'Authentication Failed' });
     }
   } catch (error) {
     console.error('Error:', error);
+    console.log("This is a test log")
     res.status(500).json({ msg: 'An error occurred' });
   }
 });
