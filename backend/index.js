@@ -29,12 +29,12 @@ const { error } = require('console');
 
 const io = socketIo(server, {
   cors: {
-    origin: /*"http://localhost:3000"*/ 'https://baxmthembu.github.io',
+    origin: ["http://localhost:3000", 'https://baxmthembu.github.io'],
     methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
     credentials: true
   }
 });
+
 
 io.on('connection', (socket) => {
   console.log('New client connected');
@@ -77,6 +77,7 @@ app.use(json());
 app.use(urlencoded({ extended: false }));
 app.use(cors({
   origin: 'https://baxmthembu.github.io',
+  methods: ['GET', 'POST'],
   credentials: true
 }));
 app.use(function (req, res, next) {
