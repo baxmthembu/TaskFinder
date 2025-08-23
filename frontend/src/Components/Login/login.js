@@ -9,6 +9,7 @@ import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { UserContext } from "../../UserContext";
 import { useAuth } from "../../provider/AuthProvider.js";
+import logo from '../Images/taskaroo.svg'
 
 const Login = () => {
   //const [clientId, setClientId] = useState('')
@@ -16,13 +17,13 @@ const Login = () => {
   const [captchaValue, setCaptchaValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {setToken} = useAuth()
-  const [userLocation, setUserLocation] = useState({ latitude: null, longitude: null });
+  const [ , setUserLocation] = useState({ latitude: null, longitude: null });
   const [formData, setFormData] = useState({
     username: '',
     password:'',
   });
 
-  const usenavigate = useNavigate();
+  //const usenavigate = useNavigate();
 
   const getLocation = () => {
     return new Promise((resolve, reject) => {
@@ -52,15 +53,14 @@ const Login = () => {
       if (validate()) {
         const location = await getLocation();
         const response = await Axios.post('http://localhost:3001/login', { ...formData, ...location });
+        //const response = await Axios.post(`${process.env.REACT_APP_API_URL}/login`, { ...formData, ...location});
 
         if (response.data.msg === "Authentication Successful") {
           //console.log(user.role)
           const userId = response.data.user.id
           const userToken = response.data.user.token
           const userRole = response.data.user.role
-          //localStorage.setItem('userRole', userRole)
           localStorage.setItem('role', userRole)
-          //localStorage.setItem('userId', userId); // Adjust to match role-based IDs
           localStorage.setItem('id', userId)
           setUser({id: userId, role: userRole});
           localStorage.setItem('token', userToken)
@@ -68,7 +68,9 @@ const Login = () => {
           toast.success(`Welcome ${response.data.user.name}`, {
             position: toast.POSITION.TOP_CENTER
           });
-          usenavigate('/home', {replace:true});
+          setTimeout(() => {
+            window.location.hash = '#/service_form';
+          }, 100);
         } else {
           console.error('Authentication failed');
           toast.error('Log In Error', {
@@ -105,20 +107,21 @@ const Login = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const logo3 = require('../Images/Taskify.png');
-
   return (
     <div>
     <div className={styles.app}>
+      <header className={styles.header}>
       <div className={styles.back_button}>
         <Link to="/">
            <button className={styles.button28}>Back</button>
         </Link>
       </div>
       <div className={styles.logo}>
-        <img src={logo3} alt="Logo" />
+        <img src={logo} alt="Logo" />
       </div>
+      </header>
       <div className={styles.loginform}>
+        <h1>Sign in</h1>
         <form onSubmit={ProceedLogin}>
           <div className={styles.inputcontainer}>
             <label>Username<span className={styles.errmsg}>*</span> </label>
@@ -143,7 +146,7 @@ const Login = () => {
             </button>
           </div>
           <div className={styles.createaccount}>
-            <Link to="/register" className={styles.text}>Create account</Link>
+            <p>or<Link to="/register" className={styles.text}>create account</Link></p>
           </div>
         </form>
       </div>

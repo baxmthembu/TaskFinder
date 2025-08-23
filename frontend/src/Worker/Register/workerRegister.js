@@ -7,7 +7,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { light } from '@mui/material/styles/createPalette';
-import styles from '../Register/workerRegister.module.css'
+import styles from '../Register/workerRegister.module.css';
+import logo from "../../Components/Images/taskaroo.svg"
 
 
 function WorkerRegister({history}){
@@ -81,13 +82,14 @@ function WorkerRegister({history}){
 
       //Post my form data into my backend server
        Axios.post("http://localhost:3001/registerWorker", completeFormData)
+       //Axios.post(`${process.env.REACT_APP_API_URL}/registerWorker`)
       .then(res => {
-        if(res.data.status === 200) {
+        if(res.status === 200) {
           console.log('Success')
           toast.success('Registered Successfuly', {
             position: toast.POSITION.TOP_CENTER
           })
-          navigate('/worker_login.js')
+          navigate('/worker_login')
         }else{
           console.log('Failed')
           toast.error('Failed to register', {
@@ -141,15 +143,19 @@ function WorkerRegister({history}){
 
     return (
         <div className={styles.app}>
+          <header className={styles.header}>
           <div className={styles.back_button}>
             <Link to="/worker_login">
               <button className={styles.button28}>Back</button>
-           </Link>
+           </Link> 
           </div>
           <div className={styles.logo}>
-            <img src= {logo1} />
+            <img src= {logo} />
           </div>
+          </header>
             <div className={styles.loginforms}>
+              <h1>Register</h1>
+              <hr />
                 <form onSubmit={uploadImage} /*action='/upload' enctype='multipart/form-data'*/  encType='multipart/form-data'>
                     <div className={styles.inputcontainers}>
                         <label>Name <span className={styles.errmsg}>*</span></label>
@@ -176,7 +182,7 @@ function WorkerRegister({history}){
                         <input value={formData.occupation} onChange={handleChange} type='text' name='occupation' className={styles.formcontrol} placeholder='Occupation'></input>
                     </div>
                     <div className={styles.inputcontainers}>
-                      <label>Upload Image <span className={styles.errmsg}>*</span></label>
+                      <label>Upload image of yourself <span className={styles.errmsg}>*</span></label>
                         <input type='file' /*accept='image/*'*/ onChange={handleImageChange} name='images' />
                     </div>
                     <div className={styles.buttoncontainers}>

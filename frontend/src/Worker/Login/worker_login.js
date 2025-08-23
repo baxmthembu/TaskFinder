@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 //import { WorkerContext } from "../FreelancerContext";
 import { useAuth } from "../../provider/AuthProvider.js";
 import { UserContext } from "../../UserContext.js";
+import logo from "../../Components/Images/taskaroo.svg"
 
 
 const WorkerLogin = () => {
@@ -48,6 +49,7 @@ const WorkerLogin = () => {
         try {
             if(validate()){
                 const response = await Axios.post('http://localhost:3001/workerlogin', formData);
+                //const response = await Axios.post(`${process.env.REACT_APP_API_URL}/workerlogin`, formData);
                 if (response.data.msg === 'Authentication Successful') {
                   // Set user in context                 
                   //Assuming response.data.user contains the user details
@@ -55,16 +57,17 @@ const WorkerLogin = () => {
                     const workerId = response.data.user.id
                     const workerToken = response.data.user.token
                     const workerRole = response.data.user.role
-                    //localStorage.setItem('workerRole', workerRole)
                     localStorage.setItem('role', workerRole)
-                    // Handle successful login (e.g., set user session, redirect, etc.)
-                    //localStorage.setItem('workerId', workerId);
                     localStorage.setItem('id', workerId)
-                    //setWorker({id:workerId, role: workerRole})
                     setUser({id:workerId, role:workerRole})
                     localStorage.setItem('token', workerToken)
                     setToken(workerToken)
-                    navigate('/freelancerhome')
+                    toast.success(`Welcome ${response.data.user.name}`, {
+                      position: toast.POSITION.TOP_CENTER
+                    });
+                    setTimeout(() => {
+                      navigate('/freelancerhome', { replace: true });
+                    }, 100);
                     console.log('logged in')
                     console.log(response.status)
                 }else{
@@ -94,15 +97,18 @@ const WorkerLogin = () => {
     
     return (
         <div className={styles.app}>
+          <header className={styles.header}>
           <div className={styles.back_button}>
             <Link to="/">
               <button className={styles.button28}>Back</button>
            </Link>
           </div>
           <div className={styles.logo}>
-            <img src={logo3} alt="Logo" />
+            <img src={logo} alt="Logo" />
           </div>
+          </header>
         <div className={styles.loginform}>
+          <h1>Sign in</h1>
         <form onSubmit={Login}>
           <div className={styles.inputcontainer}>
             <label>Name<span className={styles.errmsg}>*</span> </label>
@@ -127,7 +133,7 @@ const WorkerLogin = () => {
             )}</button>
           </div>
           <div className={styles.createaccount}>
-            <Link to="/workerRegister" className={styles.text}>create account</Link>
+            <p>or<Link to="/workerRegister" className={styles.text}>create account</Link></p>
           </div>
           <div>
           </div>

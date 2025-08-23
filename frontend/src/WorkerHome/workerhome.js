@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
-import MapContainer from '../Components/MapComponent/map';
 import '../WorkerHome/workerhome.css';
 import Sidebar from '../Components/SideBar/sidebar';
+import MapComponent from '../Components/MapComponent/testmap';
 
 const FreelancerLocationTracker = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,11 +11,17 @@ const FreelancerLocationTracker = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:3001/workers', {
+        /*const response = await fetch('http://localhost:3001/workers', {
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
+        });*/
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/workers`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
         });
 
         if (!response.ok) {
@@ -43,7 +49,7 @@ const FreelancerLocationTracker = () => {
         className='search-input'
         onChange={(event) => setSearchQuery(event.target.value)}
       />
-      <MapContainer data={workersData} searchQuery={searchQuery} />
+      <MapComponent data={workersData} searchQuery={searchQuery} />
     </div>
   );
 };

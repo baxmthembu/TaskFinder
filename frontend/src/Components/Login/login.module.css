@@ -1,10 +1,175 @@
+/*.logo {
+  position: fixed;
+  right: -5%;
+  top: -10rem;  
+  z-index: 10;
+}
+
+
+.loginform {
+    background: rgba(255, 255, 255, 0.741);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 4rem;
+    margin: 4px;
+}
+  
+input[type="text"],
+input[type="password"],
+input[type = "tel"],
+input[type = "email"]{
+  height: 2.5rem;
+  font-size: 25px;
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  border: 2px solid #e0e0e0;
+}
+  
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="email"]:focus {
+  border-color: #44d7ca;
+  box-shadow: 0 0 0 3px rgba(68, 215, 202, 0.2);
+}
+  
+
+#buttons {
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 20px;
+  color: white !important;
+  border-radius: 3px;
+  width: 10rem;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+  background: linear-gradient(to right, #44d7ca, #3bc9db) !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(68, 215, 202, 0.3);
+}
+  
+#buttons:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(68, 215, 202, 0.4);
+}
+
+
+#buttons:active {
+  transform: translateY(1px);
+}
+  
+.buttoncontainer {
+  display: flex;
+  justify-content: center;
+}
+  
+.listcontainer {
+  display: flex;
+}
+  
+.error {
+  color: red;
+  font-size: 20px;
+}
+  
+.title {
+  font-size: 25px;
+  margin-bottom: 20px;
+}
+  
+.inputcontainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px;
+  width: 100%;
+  margin-left: -0.5rem;
+}
+
+label {
+  font-size: 25px
+}
+
+.createaccount .text {
+  color: rgb(4, 171, 171)!important;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: bold;
+  position: relative;
+  left: 140px;
+  top: 20px;
+  transition: color 0.3s ease;
+}
+
+.createaccount .text:hover{
+  color: rgba(53, 255, 235, 0.942) !important;
+}
+
+
+.button28 {
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid #1A1A1A;
+  border-radius: 15px;
+  box-sizing: border-box;
+  color: #3B3B3B;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  font-size: 16px;
+  font-weight: 600;
+  line-height: normal;
+  margin: 0;
+  min-height: 60px;
+  min-width: 0;
+  outline: none;
+  padding: 16px 24px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: 9%;
+  will-change: transform;
+}
+
+.button28:disabled {
+  pointer-events: none;
+}
+
+.button28:hover {
+  color: #fff;
+  background-color: #44d7ca;
+  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+  transform: translateY(-2px);
+  border: none;
+}
+
+.button28:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+    
+.back_button .button28{
+  position: absolute;
+  left: 5%;
+  top: 1em
+}*/
 .logo{
   position: fixed;
   right: -5%;
   top: -10rem
 }
 
-.app {
+/*.app {
     font-family: sans-serif;
     display: flex;
     align-items: center;
@@ -13,8 +178,7 @@
     gap: 20px;
     height: 100vh;
     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
-    /*background-color: #CCCCFF; /*hsla(225, 100%, 94%, 0.801)*/
-  }
+  }*/
   
   
   input[type="text"],
@@ -29,37 +193,27 @@
     outline: none;
   }
   
-  input[type="submit"] {
+  /*#buttons {
     margin-top: 10px;
     cursor: pointer;
     font-size: 15px;
     background: #01d28e;
-    border: 1px solid #01d28e;
+    /*border: 1px solid #01d28e;*
     color: #fff;
     padding: 10px 20px;
-  }
+  }*/
 
-  button[type="submit"] {
+  #buttons {
     margin-top: 10px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 20px;
     /*border: 1px solid #01d28e;*/    
-    color: black !important;
-    background-color: #6CB4EE !important;
+    color: white !important;
+    background: linear-gradient(to right, #44d7ca, #3bc9db) !important;
     border-radius: 3px;
-    width: 6rem;
+    width: 10rem;
     padding: 10px 20px;
   }
-  
-  /*input[type="submit"]:hover {
-    background-color: #6cf0c2 !important;
-    border-radius: 10px
-  }*/
-
-  /*button:hover{
-    background: #6cf0c2;
-    border-radius: 10px;
-  }*/
   
   .buttoncontainer {
     display: flex;
@@ -69,13 +223,20 @@
   .loginform {
     background-color: transparent;
     padding: 4rem;
-    margin: 4px;
-    /*box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);*/
+    /*margin-left: 4px;*/
     box-shadow: 5px 5px 10px 2px rgba(95, 95, 95, 0.24);
-    align-items: right;
-    /*border-radius: 10px;
-    border: 1px solid black;*/
-
+    /*align-items: right;*/
+    width: 20%;
+    height: 50%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+  top: 32%;
+  left: 40%;
+  margin-top: -50px;
+  margin-left: -100px;
   }
 
 
@@ -86,6 +247,10 @@
   .error {
     color: red;
     font-size: 20px;
+  }
+
+  .errmsg{
+    color: red;
   }
   
   .title {
@@ -99,6 +264,7 @@
     gap: 8px;
     margin: 10px;
     width: 100%;
+    margin-left: -0.5rem;
   }
 
   label {
@@ -108,15 +274,22 @@
   .createaccount .text {
     color: darkcyan!important;
     text-decoration: none;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: bold;
     position: relative;
-    left: 140px;
-    top: 20px
+    left: 20px;
+    bottom: 17px;
+    text-align: center;
+    display: flex;
   }
 
   .createaccount .text:hover{
     color: black;
+  }
+
+  .createaccount p{
+    position: relative;
+    left: 110px
   }
 
 
@@ -155,7 +328,7 @@
 
 .button28:hover {
   color: #fff;
-  background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+  background-color: #44d7ca;
   box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
   transform: translateY(-2px);
   border: none;

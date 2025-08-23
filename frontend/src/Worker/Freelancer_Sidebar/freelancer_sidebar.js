@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './freelancer_sidebar.css';
 import { elastic as Menu } from 'react-burger-menu';
 import Logout from '../../Worker/Logout/logout';
-import Freelancers from '../freelancerDelete/freelancerDelete';
+import { right } from '@popperjs/core';
 
 const Sidebar = () => {
   const [role, setRole] = useState(null);
+  const linksForDefault = [
+  { path: '/login', label: 'Login' },
+  { path: '/register', label: 'Register' }
+  ];
 
   useEffect(() => {
     const storedRole = localStorage.getItem('role');
-    setRole(storedRole); // Fetch the role from localStorage
+    setRole(storedRole || 'default'); // Fetch the role from localStorage
   }, []);
  
   //Links for client sidebar
@@ -41,30 +45,49 @@ const Sidebar = () => {
     ));
   };
 
+  const links = useMemo(() => {
+  if (role === 'client') return linksForClient;
+  if (role === 'freelancer') return linksForFreelancer;
+  return linksForDefault;
+}, [role]);
+
   return (
-    <div>
-      <div className="bm-burger-button">
-        <div className="bm-burger-bars"></div>
-      </div>
-      <Menu>
-        <div className="menu">
-          {/*if the role is client link to linksForClient array and if role is equal to freelancer link to linksForFreelancers*/}
-          <ul style={{ listStyle: 'none', padding: 0 }} className="menu">
-            {role === 'client' && renderLinks(linksForClient)}
-            {role === 'freelancer' && renderLinks(linksForFreelancer)}
+  <div>
+    {/*<div className="bm-burger-button"></div>
+      <div className="bm-burger-bars"></div>*/}
+    <Menu
+    right
+    customBurgerIcon={false}
+    styles={burgerMenuStyles}>
+      <div className="menu">
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {renderLinks(links)}
+          {role && ( // Only show logout if authenticated
             <li className="logout">
               <Logout className="menu-items" />
             </li>
-            {/*{role === 'freelancer' && (
-              <li className="delete">
-                <Freelancers />
-              </li>
-            )}*/}
-          </ul>
-        </div>
-      </Menu>
-    </div>
-  );
+          )}
+        </ul>
+      </div>
+    </Menu>
+  </div>
+);
+};
+
+const burgerMenuStyles = {
+  bmBurgerButton: {
+    position: 'fixed',
+    width: '36px',
+    height: '30px',
+    right: '36px',
+    top: '36px'
+  },
+  bmBurgerBars: {
+    background: '#373a47'
+  },
+  bmBurgerBarsHover: {
+    background: '#44d7ca'
+  }
 };
 
 export default Sidebar;

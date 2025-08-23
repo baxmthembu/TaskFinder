@@ -8,53 +8,57 @@ import Freelancers from '../freelancerDelete/freelancerDelete';
 //import { right } from '@popperjs/core';
 
 
-
 const Logout = () => {
-    
     const { user, setUser } = useContext(UserContext);
-    //const {worker, setWorker} = useContext(WorkerContext)
-    //const {role, setRole} = useContext(UserContext)
+    //const { worker, setWorker } = useContext(WorkerContext);
     const navigate = useNavigate();
-
-    /*console.log('User context before logout:', user);*/
 
     const handleLogout = async () => {
         try {
-            /*if (!user || !user.id || !worker || worker.id) {
+            // Check if user exists before proceeding
+            if (!user || !user.id) {
                 throw new Error('No user is logged in');
-            }*/
+            }
 
-            if (user?.role === 'freelancer'){
+            // Perform the appropriate logout based on user role
+            if (user.role === 'freelancer') {
                 await Axios.post('http://localhost:3001/workerlogout', {
                     freelancerId: user.id
                 });
-                setUser(null)
-                localStorage.clear()
-                navigate('/worker_login')
-            }else if(user?.role === 'client'){
+                /*await Axios.post(`${process.env.REACT_APP_API_URL}/workerlogout`, {
+                    freelancerId: user.id
+                });*/
+            } else if (user.role === 'client') {
                 await Axios.post('http://localhost:3001/clientlogout', {
                     clientId: user.id,
-                })
-                setUser(null)
-                localStorage.clear()
-                navigate('/login')
-                throw new Error('Failed to logout')
+                });
+                /*await Axios.post(`${process.env.REACT_APP_API_URL}/clientlogout`, {
+                    clientId: user.id,
+                });*/
             }
-            //navigate('/navigator')
+
+            // Clear user state and local storage
+            setUser(null);
+            //if (setWorker) setWorker(null); // Clear worker state if exists
+            localStorage.clear();
+
+            // Navigate after state is cleared
+            navigate('/');
+            
         } catch (error) {
             console.error('Error logging out:', error);
+            // Optionally navigate to / even if there's an error
+            navigate('/');
         }
-    }
-    return(
-        <>
-            <div style={styles.button}>
-                <button className='button-77'  onClick={handleLogout}>Logout</button>
-            </div>
-            <p>or</p>
-            <Freelancers />
-        </>
-    )
-  };
+    };
+
+    return (
+        <div style={styles.button}>
+            <button className='button-77' onClick={handleLogout}>Logout</button>
+        </div>
+    );
+};
+
 
   const styles = {
     button: {

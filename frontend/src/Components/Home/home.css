@@ -1,0 +1,365 @@
+.body-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 100px;
+    position: relative;
+    min-height: 100vh;
+    flex-direction: column;
+    display: flex;
+}
+
+/* Header styles */
+.header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/*header{
+  background-color: white;
+  height: 130px;
+}*/
+
+/* Search bar */
+.searchbar {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+	margin-top: 50px;
+}
+
+.searchbar #search {
+    width: 50%;
+    padding: 12px 20px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 16px;
+}
+
+/* Main content layout */
+.main-content {
+    display: flex;
+    height: calc(100vh - 180px);
+    margin-top: 60px;
+    width: 100%;
+    /*new*/
+    position: relative;
+    z-index: 1;
+    min-height: 0px;
+    overflow: hidden;
+}
+
+.map-container {
+  flex: 1 1 55%;
+  height: 100vh; /* Changed from 100% to vh */
+  min-height: 500px;
+  position: relative;
+  z-index: 1;
+}
+
+.map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid #eee;
+}
+
+.map-container.loading .map {
+  display: none;
+}
+
+/* Leaflet-specific fixes */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  background: #f8f9fa;
+  z-index: 0; /* Ensure proper stacking */
+}
+
+.leaflet-tile-container {
+  image-rendering: crisp-edges; /* Improves tile rendering */
+}
+
+.map-container.loading {
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-message {
+    font-size: 18px;
+    color: #666;
+}
+
+
+/* Cards container */
+.cards-container {
+    flex: 1 1 45%; /* Takes 45% of width */
+    min-width: 500px;
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f9f9f9;
+    position: relative;
+    z-index: 2;
+}
+
+/* Cards grid */
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* Card styles */
+.card_item {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.card_item:hover {
+    transform: translateY(-5px);
+}
+
+.card_inner {
+    padding: 20px;
+    text-align: center;
+}
+
+.container .card_item img {
+	width: 120px;
+	height: 120px;
+	margin-bottom: 10px;
+	border-radius: 50%;
+	align-items: center;
+	transition: transform .2s;
+}
+
+.container .card_item .userName  {
+	color: #203150;
+	font-weight: 600;
+	font-size: 20px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.container .card_inner .userNumber {
+	color: #203150;
+	font-weight: 600;
+	font-size: 20px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.container .card_inner .userJob {
+	color: #333;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.container .card_item .userNumber {
+	color: #333;
+	font-weight: 400;
+	font-family: "Nunito Sans", sans-serif;
+	font-size: 21px;
+	font-style: bold;
+}
+
+.container .card_item .userOccupation {
+	font-size: 12px;
+	font-weight: 100;
+	margin: 5px 0 10px;
+	word-wrap: break-word;
+	color: #888B9E;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.container .card_item .gitDetail {
+	font-size: 14px;
+	line-height: 24px;
+	color: #7b8ca0;
+	display: flex;
+	flex-direction: column;
+}
+
+.detail-box{
+	margin-top: -1rem
+}
+
+.button {
+	margin: 10px auto;
+    padding: 10px;
+	width: 100px;
+	height: 45px;
+	background: hsl(245, 44%, 65%);
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 10px 10px hsl(225, 100%, 94%);
+	font-size: 20px;
+}
+
+.button:hover{
+	background-color: #44d7ca;
+}
+
+.buttons{
+	display: inline-block;
+}
+
+
+
+/* Sorting controls */
+.sorting {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 10;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.sorting select {
+    margin-left: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.status-button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.online {
+    background-color: green;
+}
+
+.offline {
+    background-color: red;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+}
+
+.pagination-container {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	display: flex;
+    justify-content: center;
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-right: 1rem;
+	z-index: 1000;
+}
+
+.pagination-container button {
+    padding: 8px 12px;
+    background-color: #ccc;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.pagination-container button.active,
+.pagination-container button:hover {
+    background-color: #333;
+    color: #fff;
+}
+@media screen and (max-width: 1024px) {
+	.container .card_item {
+		width: 33%;
+		display: block;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.container .card_item {
+		width: 50%;
+	}
+	.wrapper .header {
+		font-size: 16px;
+		height: 50px;
+	}
+}
+
+@media screen and (max-width: 568px) {
+	.container .card_item {
+		width: 80%;
+		margin: auto;
+	}
+}
+
+@media screen and (max-width: 320px) {
+	.container .card_item {
+		width: 100%;
+	}
+}
+
+/*.pagination-container button {
+    padding: 8px 16px;
+    margin: 0 5px;
+    border: 1px solid #44d7ca;
+    background-color: white;
+    color: #44d7ca;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.pagination-container button:hover:not(:disabled) {
+    background-color: #44d7ca;
+    color: white;
+}
+.pagination-container button.active {
+    background-color: #44d7ca;
+    color: white;
+    border-color: #44d7ca;
+}
+
+.pagination-container button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+	border-color: #ccc;
+    color: #ccc;
+}*/
+
+/*.pagination-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-right: 13rem;
+}*/

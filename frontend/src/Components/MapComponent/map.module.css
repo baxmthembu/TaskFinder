@@ -1,5 +1,8 @@
 .app{
 	background-color: #CCCCFF;
+	width: 100%;
+	height: 100%;
+	position: relative;
 }
 
 .logo{
@@ -8,51 +11,225 @@
 	top: -3rem  
 }
 
-.containers {
-	padding: 40px 20px 20px 20px;
-	width: 95%;
-    position: absolute;
-    top: 30%;
+/*.map_loading_container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  z-index: 1;
+}
+
+.gm-style {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+}*/
+
+.detail_box{
+	margin-top: -1rem;
+}
+
+
+.container .card_item img {
+	width: 120px;
+	height: 120px;
+	margin-bottom: 10px;
+	border-radius: 50%;
+	align-items: center;
+	transition: transform .2s;
+}
+
+.container {
+	/*padding: 40px 20px 20px 20px;*/
 	margin: auto;
+	width: 95%;
 	flex-wrap: wrap;
 	display: flex;
 	justify-content: space-between;
 	justify-content: center;
-	flex-wrap: wrap;
 }
 
-.card_items {
-	padding: 15px 30px;
-	width: 24%;
-	text-align: center;
-}
-
-.containers .card_items:hover {
-	transform: scale(1.02);
-	transition: transform .3s;
-	cursor: pointer;
-}
-
-.containers .card_items .userNames  {
+.container .card_inner .userNumber {
 	color: #203150;
 	font-weight: 600;
 	font-size: 20px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	font-size: 21px;
+	font-style: bold;
 }
 
-.containers .card_inners .userNumbers {
-	color: #203150;
-	font-weight: 600;
-	font-size: 20px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.containers .card_inners .userJobs {
+.container .card_inner .userJob {
 	color: #333;
 	font-weight: bold;
 	font-size: 20px;
+}
+
+.container .card_item .userNumber {
+	color: #333;
+	font-weight: 400;
+	font-family: "Nunito Sans", sans-serif;
+	font-size: 21px;
+	font-style: bold;
+}
+
+.container .card_item .userOccupation {
+	font-size: 12px;
+	font-weight: 100;
+	margin: 5px 0 10px;
+	word-wrap: break-word;
+	color: #888B9E;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.container .card_item .gitDetail {
+	font-size: 14px;
+	line-height: 24px;
+	color: #7b8ca0;
+	display: flex;
+	flex-direction: column;
+}
+
+.button {
+	margin: 10px auto;
+    padding: 10px;
+	width: 100px;
+	height: 45px;
+	background: hsl(245, 44%, 65%);
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 10px 10px hsl(225, 100%, 94%);
+	font-size: 20px;
+}
+
+.button:hover{
+	/*background: #7FFFD4;*/
+	background-image: linear-gradient(92.83deg, #ff7426 0, #f93a13 100%);
+
+}
+
+.buttons{
+	display: inline-block;
+}
+
+.status-button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.online {
+    background-color: green;
+}
+
+.offline {
+    background-color: red;
+}
+
+.card_item {
+	text-align: center;
+	/*Added*/
+	margin: 5px;
+	justify-content: center;
+	align-items: center;
+	
+}
+
+.mapWrapper {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.errorContainer {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.errorContainer h3 {
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.errorContainer button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.errorContainer button:hover {
+  background-color: #0056b3;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.leaflet-container {
+  height: 100% !important; 
+  width: 100% !important;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

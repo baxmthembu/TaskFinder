@@ -1,0 +1,19 @@
+{
+  "models": [
+    {
+      "title": "CodeLlama 13B",
+      "provider": "ollama",
+      "model": "codellama:13b-instruct"
+    },
+    {
+      "title": "DeepSeek-Coder 6.7B",
+      "provider": "ollama",
+      "model": "deepseek-coder:6.7b"
+    },
+    {
+      "title": "WizardCoder 13B",
+      "provider": "ollama",
+      "model": "wizardcoder:13b"
+    }
+  ]
+}

@@ -1,0 +1,603 @@
+.chat-widget {
+  position: fixed;
+  bottom: 0;
+  right: 20px;
+  width: 800px;
+  height: 70px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-widget.open {
+  height: 600px;
+}
+
+.chat-header {
+  background: #0073b1;
+  color: white;
+  padding: 12px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px 8px 0 0;
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.close-chat {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chat-content {
+  display: flex;
+  flex: 1;
+  height: calc(100% - 45px);
+  overflow: hidden;
+}
+
+.conversation-list {
+  width: 300px;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+.empty-conversations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+}
+
+.conversation-item {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.conversation-item:hover {
+  background-color: #f5f5f5;
+}
+
+.conversation-item.active {
+  background-color: #ebebeb;
+}
+
+.conversation-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  background-color: #dfe3e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #495057;
+}
+
+.conversation-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.conversation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.conversation-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #666;
+}
+
+.message-preview {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.message-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  background-color: #dfe3e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #495057;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-partner-info h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.message-partner-info p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.messages-container {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-messages {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.message {
+  max-width: 70%;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.message.sent {
+  background-color: #0073b1;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.message.received {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.message-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.message-time {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.8;
+  text-align: right;
+}
+
+.message.sent .message-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.message.received .message-time {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.typing-indicator {
+  display: flex;
+  padding: 8px;
+  align-self: flex-start;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #999;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 2px;
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.message-input {
+  padding: 12px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  background: white;
+}
+
+.message-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  margin-right: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.message-input button {
+  background: #0073b1;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-input button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.no-conversation-selected {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  text-align: center;
+  padding: 20px;
+}
+
+.no-conversation-selected .empty-icon svg {
+  width: 60px;
+  height: 60px;
+  fill: #ccc;
+  margin-bottom: 15px;
+}
+
+.no-conversation-selected h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.no-conversation-selected p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.clear-messages-button {
+  background: none;
+  border: 1px solid #ccc;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 10px;
+  transition: all 0.2s;
+}
+
+.clear-messages-button:hover {
+  background-color: #f5f5f5;
+  border-color: #999;
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.refresh-button:hover {
+  color: #333;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.chat-header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.typing-status {
+  color: #999;
+  font-style: italic;
+  padding: 5px 10px;
+}
+
+/* Image message styles */
+.image-message {
+  max-width: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Location message styles */
+.location-message {
+  max-width: 300px;
+}
+
+.location-map {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.location-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.location-text {
+  display: block;
+  margin-top: 5px;
+  color: #007bff;
+}
+
+/* Image preview styles */
+.image-preview {
+  position: relative;
+  max-width: 150px;
+  margin-bottom: 10px;
+}
+
+.image-preview img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.remove-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Input area styles */
+/*.input-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.file-upload-button, .location-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.file-upload-button:hover, .location-button:hover {
+  color: #007bff;
+}*/
+/* Improved File Upload Button */
+.file-upload-button {
+  position: relative;
+  background: #f0f2f5;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #65676b;
+  transition: all 0.2s ease;
+}
+
+.file-upload-button:hover {
+  background: #e4e6eb;
+  color: #0073b1;
+}
+
+.file-upload-button:active {
+  transform: scale(0.95);
+}
+
+/* Improved Location Button */
+.location-button {
+  position: relative;
+  background: #f0f2f5;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #65676b;
+  transition: all 0.2s ease;
+}
+
+.location-button:hover {
+  background: #e4e6eb;
+  color: #34a853; /* Green color for location */
+}
+
+.location-button:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip for buttons */
+.file-upload-button::after,
+.location-button::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.file-upload-button:hover::after,
+.location-button:hover::after {
+  opacity: 1;
+  visibility: visible;
+  margin-bottom: 5px;
+}
+
+/* Input actions container */
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-right: 8px;
+}
+
+/* Animation for active buttons */
+@keyframes buttonClick {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.file-upload-button:active,
+.location-button:active {
+  animation: buttonClick 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .file-upload-button,
+  .location-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
+
+/* Message bubble styles */
+.message.sent .image-message, 
+.message.sent .location-message {
+  background: #dcf8c6;
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.message.received .image-message,
+.message.received .location-message {
+  background: #fff;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes typingAnimation {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+}

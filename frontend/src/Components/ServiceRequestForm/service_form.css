@@ -1,0 +1,704 @@
+/*.main-container {
+  display: flex;
+  gap: 30px; /* Space between columns *
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Add to your CSS file *
+.request-form-container {
+  width: 100%; /* Changed from max-width *
+  padding: 2rem;
+  margin: 65px auto; /* Center the container *
+  flex: 3;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-sizing: border-box; /* Include padding in width calculation *
+  position: relative; /* For absolute positioned children *
+}
+
+.form-group1, 
+.form-group2 {
+  margin-bottom: 1.5rem;
+  padding: 2rem;
+  border-radius: 8px;
+  color: black;
+  background-color: white;
+  width: auto; /* Let it fill container *
+  margin-left: 0; /* Remove negative margin *
+  margin-right: 0;
+}
+
+.request-form-container h1 {
+  color: black;
+  margin-bottom: 1rem; /* Add some space below *
+  padding-left: 2rem; /* Instead of negative margin *
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+
+}
+
+header{
+  background-color: white;
+  height: 130px;
+}
+
+.request-form-logo{
+  position: absolute;
+  top: -20%;
+}
+
+textarea{
+  resize: none;
+}
+
+.form-group1 label{
+  color: #212121;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.form-group1 #task {
+  width: calc(100% - 1rem); /* Account for padding *
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-left: 0; /* Remove negative margin *
+  font-size: 20px;
+  margin-top: 1rem;
+}
+
+.duration-options {
+  display: column;
+  gap: 1rem;
+  color: #28282B;
+  font-weight: 200;
+}
+
+.duration-options .radio{
+  font-size: 24px;
+}
+
+.duration-options label.radio {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  color: #353935;
+  font-weight: 10;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+
+.form-group2 #head {
+  color: 	#36454F;
+  font-family: "Nunito Sans", sans-serif;
+  font-optical-sizing: auto;
+  text-decoration: underline;
+  text-underline-position: under;
+  text-decoration-thickness: 0.1px;
+  gap: 5px;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100,
+    "YTLC" 500;
+}
+
+.form-group2 p{
+  text-decoration: underline;
+}
+
+.duration-options input[type="radio"] {
+  cursor: pointer;
+  accent-color: #4CAF50;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.duration-options label.radio span:hover {
+  color: #44d7ca;
+}
+
+.duration-options input[type="radio"]:checked{
+  border-color: #44d7ca;
+  background-color: #44d7ca;
+  box-shadow: inset 0 0 0 3px white;
+}
+
+.submit-btn {
+  background-color: #44d7ca;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 18rem;
+  
+  margin-top: 3rem;
+}
+
+.service-request {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border-left: 4px solid #4CAF50;
+}
+
+/* Main container styling *
+.aside {
+  flex: 1; /* Takes 1/3 of the space *
+  max-width: 300px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-top: 20px;
+  position: sticky;
+  top: 20px; /* Sticks to the top when scrolling *
+  align-self: flex-start; /* Prevents stretching *
+  height: fit-content;
+}
+
+/* Form group styling *
+.form-group {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.form-group:last-child {
+  border-bottom: none;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Radio group styling *
+.radio-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.radio-label {
+  display: block;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+  text-align: center;
+}
+
+.radio-label input[type="radio"]:checked + span {
+  font-weight: bold;
+  border-color: #44d7ca;
+  color: #44d7ca;
+}
+
+.radio-label:hover {
+  border-color: #44d7ca;
+}
+
+.radio-label #date{
+  font-size: 35px;
+}
+
+.radio-label input[type="radio"] {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.radio input[type="radio"]:checked{
+  border-color: #44d7ca;
+  background-color: #44d7ca;
+}
+
+/* Specific time styling *
+.specific-time {
+  margin: 20px 0 15px;
+}
+
+.specific-time label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.specific-time input[type="time"] {
+  width: 90%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Flexible option styling *
+.flexible-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.flexible-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #44d7ca;
+}
+
+/* Price range styling *
+.price-range {
+  margin-top: 15px;
+}
+
+.price-range input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: #ddd;
+  border-radius: 3px;
+  outline: none;
+  margin-bottom: 15px;
+}
+
+.price-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #44d7ca;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.price-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-display span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #44d7ca;
+}
+
+.price-display small {
+  font-size: 12px;
+  color: #888;
+}
+
+/* Add to your CSS file *
+.date-picker-container {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-datepicker-input {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 90%;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.react-datepicker {
+  font-family: inherit;
+  border-radius: 8px;
+  border-color: #ddd;
+}
+
+.react-datepicker__header {
+  background-color: #f8f9fa;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.react-datepicker__day--selected {
+  background-color: #44d7ca;
+  color: white;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #44d7ca;
+  color: white;
+}
+
+.react-datepicker__day:hover {
+  background-color: #e6f7f5;
+}*/
+
+header{
+  background-color: rgba(217, 231, 226, 0.844);
+  height: 130px;
+}
+
+.request-form-logo{
+  position: absolute;
+  top: -10rem;
+}
+
+:root {
+  --primary-color: #44d7ca;
+  --secondary-color: #353935;
+  --border-color: #ddd;
+  --text-color: #333;
+  --light-text: #666;
+  --background-light: #f8f9fa;
+  --white: #fff;
+  --radius: 8px;
+  --transition: all 0.2s ease;
+}
+
+.service-form-wrapper {
+  min-height: 100vh;
+  background-color: var(--white);
+}
+
+.service-form-header {
+  /*background-color: var(--white);*/
+  background-color: rgba(217, 231, 226, 0.844);
+  height: 130px;
+  position: relative;
+}
+
+.service-form-logout{
+  position: relative;
+  top: 80px;
+}
+
+.main-container {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form-sidebar {
+  flex: 1;
+  max-width: 300px;
+  padding: 20px;
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  margin-top: 20px;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+  height: fit-content;
+}
+
+.request-form-main {
+  flex: 3;
+  padding: 2rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius);
+  margin-top: 20px;
+  background: var(--white);
+}
+
+.request-form-main h1 {
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.form-group:last-child {
+  border-bottom: none;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.radio-group, .time-options, .duration-options {
+  display: grid;
+  gap: 12px;
+}
+
+.radio-group {
+  grid-template-columns: 1fr 1fr;
+}
+
+.time-options, .duration-options {
+  grid-template-columns: 1fr;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1.2rem;
+}
+
+.radio-label:hover {
+  border-color: var(--primary-color);
+}
+
+.radio-label input[type="radio"] {
+  opacity: 0;
+  position: absolute;
+}
+
+.radio-label span {
+  flex: 1;
+  text-align: center;
+}
+
+.radio-label input[type="radio"]:checked + span {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 600;
+}
+
+.specific-time {
+  margin: 20px 0 15px;
+}
+
+.specific-time label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--light-text);
+}
+
+.specific-time input[type="time"] {
+  width: 90%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.flexible-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.section-title {
+  color: var(--secondary-color);
+  text-decoration: underline;
+  text-underline-position: under;
+  text-decoration-thickness: 1px;
+  font-weight: 600;
+  font-size: 1.6rem;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  resize: vertical;
+  transition: var(--transition);
+  resize: none;
+}
+
+textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5rem 0;
+}
+
+.price-range {
+  margin-top: 15px;
+}
+
+.price-range input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  background: var(--border-color);
+  border-radius: 3px;
+  outline: none;
+  margin-bottom: 15px;
+  transition: var(--transition);
+}
+
+.price-range input[type="range"]:hover {
+  background: #ccc;
+}
+
+.price-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.price-range input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.price-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-display span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.price-display small {
+  font-size: 0.8rem;
+  color: var(--light-text);
+}
+
+.submit-btn {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: var(--transition);
+  display: block;
+  margin: 2rem auto 0;
+  width: 200px;
+  text-align: center;
+}
+
+.submit-btn:hover {
+  background-color: #3bc4b8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.date-picker-container {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-datepicker-input {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
+  margin-left: -5%;
+  transition: var(--transition);
+}
+
+.custom-datepicker-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    padding: 10px;
+  }
+  
+  .form-sidebar {
+    max-width: 100%;
+    position: static;
+    margin-top: 0;
+  }
+  
+  .radio-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .submit-btn {
+    width: 100%;
+  }
+}
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .radio-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .aside {
+    padding: 15px;
+  }
+}

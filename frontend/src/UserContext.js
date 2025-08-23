@@ -4,14 +4,16 @@ const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const user = localStorage.getItem('id');
-    const role = localStorage.getItem('role')
+    const role = localStorage.getItem('role');
       if(user && role){
       setUser({id: parseInt(user, 10), role});
     }
-  }, []);
+    setLoading(false)
+    }, []);
 
   const updateUser = (newUser) => {
     console.log('Setting user:', newUser);  // Add this line to log user info
@@ -24,7 +26,7 @@ const UserProvider = ({ children }) => {
 
 
   return (
-    <UserContext.Provider value={{ user, setUser: updateUser }}>
+    <UserContext.Provider value={{ user, setUser: updateUser, loading }}>
       {children}
     </UserContext.Provider>
   );

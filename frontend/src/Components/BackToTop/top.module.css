@@ -17,8 +17,8 @@
     transition-duration: 0.3s;
     overflow: hidden;
     position: fixed;
-    bottom: 20px; /* Distance from the bottom */
-    left: 50%; /* Position it in the center */
+    bottom: 0.5rem; /* Distance from the bottom */
+    right: 20px; /* Position it in the center */
     transform: translateX(-50%); /* Center it horizontally */
   }
   

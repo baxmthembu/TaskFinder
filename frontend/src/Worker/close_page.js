@@ -5,31 +5,40 @@ const UpdateStatusOnClose = () => {
   useEffect(() => {
     const handlePageClose = async (event) => {
       const freelancerId = localStorage.getItem('id');
-
-      if (!freelancerId) return;
+      const clientId = localStorage.getItem('id');
 
       if (event.currentTarget.performance.navigation.type === 1) {
-        try {
+      try {
+        // Update freelancer status if freelancer is logged in
+        if (freelancerId) {
           await Axios.put(`http://localhost:3001/freelancers/${freelancerId}/status`, {
             status: 'offline',
             isavailable: false,
           });
-        } catch (error) {
-          console.error('Error updating freelancer status:', error);
-        }finally{
-          localStorage.clear()
         }
+
+        // Update client status if client is logged in
+        if (clientId) {
+          await Axios.put(`http://localhost:3001/clients/${clientId}/status`, {
+            status: 'offline'
+          });
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+      } finally {
+        localStorage.clear();
       }
     };
 
-    window.addEventListener('unload', handlePageClose);
+    window.addEventListener('beforeunload', handlePageClose);
 
     return () => {
-      window.removeEventListener('unload', handlePageClose);
+      window.removeEventListener('beforeunload', handlePageClose);
     };
+  }
   }, []);
 
   return null; // This component doesn't render anything
 };
 
-export default UpdateStatusOnClose;
+export default UpdateStatusOnClose

@@ -22,7 +22,8 @@ const Freelancers = () => {
 
     try {
       if(freelancerId.role === 'freelancer'){
-      const response = await Axios.delete(`http://localhost:3001/freelancers/${freelancerId}`);
+      //const response = await Axios.delete(`http://localhost:3001/freelancers/${freelancerId}`);
+      const response = await Axios.delete(`${process.env.REACT_APP_API_URL}/freelancers/${freelancerId}`);
       if (response.status === 200) {
         alert('Your information has been deleted successfully.');
         localStorage.clear(); // Optional: Clear the ID from localStorage
@@ -30,7 +31,8 @@ const Freelancers = () => {
         navigate('/')
       }
       }else{
-        const response = await Axios.delete(`http://localhost:3001/clients/${clientId}`);
+        //const response = await Axios.delete(`http://localhost:3001/clients/${clientId}`);
+        const response = await Axios.delete(`${process.env.REACT_APP_API_URL}/clients/${clientId}`);
         if (response.status === 200) {
           alert('Your information has been deleted successfully.');
           localStorage.clear(); // Optional: Clear the ID from localStorage

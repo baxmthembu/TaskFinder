@@ -9,6 +9,7 @@ const FreelancerSearch = () => {
   const handleSearch = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/api/freelancers?occupation=${occupation}`);
+      //const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/freelancers?occupation=${occupation}`);
       setFreelancerLocations(response.data);
     } catch (error) {
       console.error('Error fetching freelancer locations:', error);

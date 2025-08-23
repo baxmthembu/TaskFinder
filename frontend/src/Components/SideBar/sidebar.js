@@ -27,10 +27,6 @@ const Sidebar = () => {
         <li>
           <Link to="/about" className='menu-item'>About</Link>
         </li>
-        <li>
-          <Link to=
-          "/profile" className='menu-item'>Profile</Link>
-        </li>
         <li className='logout'>
           <Logout className='menu-items' />
         </li>
