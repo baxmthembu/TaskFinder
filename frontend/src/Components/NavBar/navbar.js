@@ -1,9 +1,18 @@
 import classes from './NavBar.module.css';
-import {Link, useResolvedPath, useMatch} from 'react-router-dom'
+import {Link, useResolvedPath, useMatch, useNavigate} from 'react-router-dom'
+import { useAuth } from '../../provider/Authprovider';
 
 const logo1 = require("../Images/logo.png")
 
 const NavBar = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
     return (
         <div>
         <div className={classes.NavBar}>
@@ -16,7 +25,15 @@ const NavBar = () => {
                         <Link to='/home'>Home</Link>
                     </li>
                     <CustomLink to="/about">About</CustomLink>
-                    <CustomLink to="/profile">Profile</CustomLink>
+                    <CustomLink to="/task-status">Task Status</CustomLink>
+                    <CustomLink to="/history">History</CustomLink>
+                    {user ? (
+                        <li>
+                            <button onClick={handleLogout} className={classes.logoutButton}>Logout</button>
+                        </li>
+                    ) : (
+                        <CustomLink to="/login">Login</CustomLink>
+                    )}
                 </ul>
             </nav>
         </div>

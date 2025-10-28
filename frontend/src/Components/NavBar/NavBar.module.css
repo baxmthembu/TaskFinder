@@ -34,3 +34,16 @@
     /*border-bottom: 2px solid grey*/
     color: chocolate
 }
+
+.logoutButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 30px;
+    font-family: inherit;
+}
+
+.logoutButton:hover {
+    color: chocolate;
+}

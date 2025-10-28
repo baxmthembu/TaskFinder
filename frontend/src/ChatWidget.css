@@ -547,6 +547,170 @@
 }
 
 /* Input actions container */
+/*.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-right: 8px;
+}*/
+
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.camera-content {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+.capture-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 4px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.close-camera {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.camera-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
+  padding: 8px;
+}
+
+.camera-button:hover {
+  color: #007bff;
+}
+/* Attachment menu styles */
+/* Attachment menu styles */
+.attachment-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.attachment-menu-button {
+  background: #f0f2f5;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #65676b;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.attachment-menu-button:hover {
+  background: #e4e6eb;
+  color: #0073b1;
+}
+
+.attachment-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  margin-bottom: 8px;
+}
+
+.attachment-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px; /* Add consistent gap between icon and text */
+}
+
+.attachment-option:hover {
+  background-color: #f0f2f5;
+}
+
+/* Ensure consistent icon sizing */
+.attachment-option .icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0; /* Prevent icon container from shrinking */
+  
+}
+
+/* Text styling */
+.attachment-option span {
+  flex-grow: 1;
+  text-align: left;
+}
+
+/* Input actions container */
 .input-actions {
   display: flex;
   gap: 8px;
@@ -554,6 +718,53 @@
   margin-right: 8px;
 }
 
+/* Unread badge styles */
+.unread-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: /*#25d366*/ red;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.conversation-avatar {
+  position: relative;
+}
+
+.total-unread-badge {
+  background-color: /*#25d366*/ red;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.unread-indicator {
+  color: #25d366;
+  font-weight: bold;
+}
+
+/* Message preview styles for unread messages */
+.conversation-item.unread .message-preview {
+  font-weight: bold;
+}
+
+.conversation-item.unread .conversation-header h4 {
+  font-weight: bold;
+}
 /* Animation for active buttons */
 @keyframes buttonClick {
   0% { transform: scale(1); }
@@ -600,4 +811,41 @@
 @keyframes typingAnimation {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-5px); }
+}
+.task-actions {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+}
+
+.accept-button, .decline-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 0 10px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.accept-button {
+  background-color: #28a745; /* Green */
+}
+
+.accept-button:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+.decline-button {
+  background-color: #dc3545; /* Red */
+}
+
+.decline-button:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
 }

@@ -1,20 +1,16 @@
-import { UserProvider } from "./UserContext";
-import AuthProvider from "./provider/AuthProvider";
+import {AuthProvider} from "./provider/Authprovider"
 import Routes from "./routes/routes";
 import './App.css'
-import UpdateStatusOnClose from "./Worker/close_page";
 import ClearStorage from "./Components/ClearStorage/clear_storage";
-
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App(){
   return(
     <AuthProvider>
-        <UserProvider>
-          <ClearStorage />
-          <UpdateStatusOnClose />
-          <Routes />
-        </UserProvider>
+        <ClearStorage />
+        <ToastContainer />
+        <Routes />
     </AuthProvider>
   )
 }

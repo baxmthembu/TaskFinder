@@ -27,6 +27,8 @@ const { check, validationResult } = require('express-validator');
 const { error } = require('console');
 const connectedUsers = new Map();
 const userRooms = new Map();
+const isProduction = process.env.NODE_ENV === 'production';
+const rateLimit = require('express-rate-limit');
 
 
 const io = socketIo(server, {
@@ -104,16 +106,16 @@ io.on('connection', (socket) => {
 
   socket.on("sendLocation", ({ location, freelancerId, serviceRequest }) => {
     const roomName = `freelancer-${freelancerId}`;
-    io.to(roomName).emit("receiveLocation", {...location, serviceRequest});
-    console.log(`Location sent to ${roomName}`);
-  });
+    io.to(roomName).emit("receiveLocation", { ...location, serviceRequest });
+    console.log(`Location and service request sent to ${roomName}`);
+});
 
   socket.on('updateAvailability', (availabilityData) => {
     console.log('Availability update received:', availabilityData);
     io.emit('receiveAvailability', availabilityData);
   });
 
-  //listen from the frontend so we can emit all the messages that were submitted by the people
+  //listen from the frontend so we can emit all the messages th"at were submitted by the people
   socket.on("send_message", (data) => {
     console.log(`Message received in room ${data.room}:`, data);
     // Emit to the specific room
@@ -360,6 +362,67 @@ socket.on('disconnect', async (reason) => {
     console.log(`User disconnected: ${socket.id}`);
     connectedUsers.delete(socket.id);
   });
+
+  socket.on('accept_task', async ({ room, task }) => {
+    const clientId = room.split('-').find(id => id != socket.freelancerId);
+    try {
+        const currentTask = await db('task').where({ id: clientId }).first();
+        if (currentTask.status === 'pending') {
+            await db('task').where({ id: clientId }).update({ status: 'accepted', freelancer_id: socket.freelancerId });
+            io.to(room).emit('task_accepted', task);
+            if(clientId) {
+                const freelancer = await db('freelancers').where({ id: socket.freelancerId }).first();
+                const message = `${freelancer.name} ${freelancer.surname} has accepted your '${task.description}' task.`;
+                io.to(`client-${clientId}`).emit('task_accepted_notification', { message });
+                io.to(`client-${clientId}`).emit('update_task_counter', { action: 'increment' });
+            }
+        } else {
+            socket.emit('task_already_accepted', { message: 'This task has already been accepted.' });
+        }
+    } catch(error) {
+      console.error('Error accepting task:', error);
+    }
+  });
+
+  socket.on('decline_task', async ({ room, taskId }) => {
+    const clientId = room.split('-').find(id => id != socket.freelancerId);
+    io.to(room).emit('task_declined', { taskId });
+    if(clientId) {
+        const freelancer = await db('freelancers').where('id', socket.freelancerId).first();
+        const task = await db('task').where('id', taskId).first();
+        const message = `${freelancer.name} ${freelancer.surname} has declined your '${task.description}' task.`;
+        io.to(`client-${clientId}`).emit('task_declined_notification', { message });
+    }
+  });
+
+  socket.on('finish_task', async ({ room, taskId }) => {
+      const clientId = room.split('-').find(id => id != socket.freelancerId);
+      try {
+          await db('task').where({ id: taskId }).update({ status: 'finished' });
+
+          const task = await db('task').where({ id: taskId }).first();
+          const user = await db('user_info').where({ id: clientId }).first();
+          const freelancer = await db('freelancers').where({ id: socket.freelancerId }).first();
+
+          await db('history').insert({
+              task_id: taskId,
+              user_id: user.id,
+              freelancer_id: freelancer.id,
+              task_title: task.description,
+              date_finished: new Date(),
+              amount: task.price_per_hour,
+          });
+
+          io.to(room).emit('task_finished', { task });
+          if(clientId) {
+              const message = `Task '${task.description}' was marked as finished.`;
+              io.to(`client-${clientId}`).emit('task_finished_notification', { message, task });
+              io.to(`client-${clientId}`).emit('task_updated', task);
+          }
+      } catch (error) {
+          console.error('Error finishing task:', error);
+      }
+  });
 });
 
 
@@ -379,6 +442,7 @@ app.use(function (req, res, next) {
 });
 app.use(express.static('public'));
 app.use(express.json())
+app.use('/chat-images', express.static('public/chat-images'));
 
 /*new*/
 app.use('/uploads', express.static('public/uploads', {
@@ -392,10 +456,10 @@ app.use('/uploads', express.static('public/uploads', {
 }));
 
 setInterval(() => {
-  fs.readdir('public/uploads/chat-images', (err, files) => {
+  fs.readdir('public/chat-images', (err, files) => {
     files.forEach(file => {
       if (!file.startsWith('compressed-')) {
-        const filePath = `public/uploads/chat-images/${file}`;
+        const filePath = `public/chat-images/${file}`;
         const stat = fs.statSync(filePath);
         if (Date.now() - stat.mtimeMs > 24 * 60 * 60 * 1000) {
           fs.unlinkSync(filePath);
@@ -452,7 +516,17 @@ const chatImageStorage = multer.diskStorage({
 
 const uploadChatImage = multer({ storage: chatImageStorage });
 
-
+//loginLimiter helps protect against abuse such as brute force attacks or excessive API requests
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes amount of time to retry again
+  max: 5, // Limit each IP to 5 login requests per 10 minutes
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  handler: (req, res) => {
+    res.status(429).json({
+        message: 'Too many requests, please try again later.',
+    });
+},
+});
 
 const userAuthenticateToken = (req,res,next) => {
   const token = req.headers['userAuthorization'];
@@ -466,19 +540,36 @@ const userAuthenticateToken = (req,res,next) => {
   })
 }
 
-const workerAuthenticateToken = (req,res,next) => {
-  const token = req.headers['workerAuthorization']
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = req.cookies.token || (authHeader && authHeader.split(' ')[1]);
+  //console.log("Authorization header: ", token);
+  
+  if (!token) {
+    console.log('No token provided');
+    return res.status(401).json({ error: 'Access token required' });
+  }
 
-  if(!token) return res.sendStatus(401)
+  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+    if (err) {
+      console.error('JWT verification error: ', err);
+      
+      // Provide more specific error messages
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expired' });
+      } else if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({ error: 'Invalid token' });
+      } else {
+        return res.status(403).json({ error: 'Token verification failed' });
+      }
+    }
+    
+    req.user = user;
+    next();
+  });
+};
 
-  jwt.verify(token.process.env.JWT_SECRET_KEY, (err,next) => {
-    if(err) return res.sendStatus(403)
-      req.user = user;
-      next()
-  })
-}
-
-app.get('/protected', userAuthenticateToken, (req, res) => {
+app.get('/protected', authenticateToken, (req, res) => {
   res.send('This is a protected route');
 });
 
@@ -683,7 +774,7 @@ app.get('/clients/:id', async (req, res) => {
 app.post('/login',[
   check('username').isLength({min:3}).trim().escape(),
   check('password').isLength({min:6}).trim()
-], async (req, res) => {
+], loginLimiter, async (req, res) => {
   console.log('log in endpoint hit')
   const errors = validationResult(req);
   if(!errors.isEmpty()){
@@ -726,8 +817,15 @@ app.post('/login',[
       const token = jwt.sign(
         {id:user.id, name:user.username, role: user.role},
         process.env.JWT_SECRET_KEY,
-        {expiresIn: '1h'}
+        {expiresIn: '4h'}
       )
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax', // Explicitly set to 'lax' for development
+        maxAge: 4 * 60 * 60 * 1000 // 4 hours
+      });
 
       const userChats = await db('chats')
         .where('client_id', user.id)
@@ -744,7 +842,7 @@ app.post('/login',[
           name: user.username,
           status: 'online',
           role: user.role,
-          token: token,
+          //token: token,
           chats: userChats
           // Add other user details if needed
         }
@@ -793,7 +891,7 @@ app.get('/nearbyWorkers', async (req, res) => {
 app.post('/workerlogin',[
   check('name').isLength({min:3}).trim().escape(),
   check('password').isLength({min: 6}).trim(),
-], async (req, res) => {
+],loginLimiter, async (req, res) => {
   const errors = validationResult(req)
   if(!errors.isEmpty()){
     return res.status(400).json({errors: errors.array()})
@@ -823,8 +921,15 @@ app.post('/workerlogin',[
       const token = jwt.sign(
         {id: user.id, name: user.name, role: user.role},
         process.env.JWT_SECRET_KEY,
-        //{expiresIn: '1h'}
+        {expiresIn: '4h'}
       )
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax', // Explicitly set to 'lax' for development
+        maxAge: 4 * 60 * 60 * 1000 // 4 hours
+      });
 
       res.json({
         msg: 'Authentication Successful',
@@ -846,7 +951,7 @@ app.post('/workerlogin',[
   }
 });
 
-app.post('/workerlogout', async (req, res) => {
+/*app.post('/workerlogout', async (req, res) => {
   const { freelancerId } = req.body;
 
   try {
@@ -863,7 +968,8 @@ app.post('/workerlogout', async (req, res) => {
         status: 'offline',
         isavailable: false
       });
-
+    
+    res.clearCookie('token');
     res.json({ msg: 'Logout Successful' });
   } catch (error) {
     console.error('Error:', error);
@@ -890,10 +996,95 @@ app.post('/clientlogout', async (req, res) => {
         status: 'offline',
       });
 
+    res.clearCookie('token');
     res.json({ msg: 'Logout Successful' });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ msg: 'An error occurred' });
+  }
+});*/
+
+// Backend index.js - Update logout endpoints
+app.post('/workerlogout', async (req, res) => {
+  const { freelancerId } = req.body;
+
+  try {
+    // Convert freelancerId to a number to ensure it's properly formatted
+    const id = Number(freelancerId);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: 'Invalid freelancer ID' });
+    }
+
+    await db('freelancers')
+      .where('id', freelancerId)
+      .update({
+        status: 'offline',
+        isavailable: false
+      });
+    
+    res.clearCookie('token');
+    res.json({ msg: 'Logout Successful' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});
+
+app.post('/clientlogout', async (req, res) => {
+  const { clientId } = req.body;
+
+  try {
+    // Convert clientId to a number to ensure it's properly formatted
+    const id = Number(clientId);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: 'Invalid client ID' });
+    }
+
+    await db('user_info')
+      .where('id', clientId)
+      .update({
+        status: 'offline',
+      });
+
+    res.clearCookie('token');
+    res.json({ msg: 'Logout Successful' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ msg: 'An error occurred' });
+  }
+});
+
+// Generic logout endpoint as fallback
+app.post('/logout', async (req, res) => {
+  try {
+    // Try to get user info from token to determine role
+    const token = req.cookies.token;
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      
+      // Try to update both tables (one will work based on actual user type)
+      await db('user_info')
+        .where('id', decoded.id)
+        .update({ status: 'offline' })
+        .catch(() => {}); // Ignore errors if user not in this table
+      
+      await db('freelancers')
+        .where('id', decoded.id)
+        .update({ 
+          status: 'offline',
+          isavailable: false 
+        })
+        .catch(() => {}); // Ignore errors if user not in this table
+    }
+    
+    res.clearCookie('token');
+    res.json({ msg: 'Logout Successful' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.clearCookie('token');
+    res.json({ msg: 'Logout Successful' });
   }
 });
 
@@ -1068,7 +1259,114 @@ app.get('/tasks/:clientId', async (req, res) => {
   }
 });
 
+app.get('/task-details/:clientId', async (req, res) => {
+  const { clientId } = req.params;
+  try {
+    // There is only one task description available per client due to schema.
+    const task = await db('task').where({ id: clientId }).first();
+    if (!task) {
+      return res.status(200).json([]); // Return empty array if no task
+    }
 
+    const chats = await db('chat').where({ client_id: clientId });
+    if (!chats.length) {
+      // If there's a task but no chats, it's an unassigned task.
+      return res.json([{ task, freelancer: null }]);
+    }
+
+    const taskDetails = await Promise.all(chats.map(async (chat) => {
+      const freelancer = await db('freelancers').where({ id: chat.freelancer_id }).first();
+      return { task, freelancer };
+    }));
+    
+    res.json(taskDetails);
+
+  } catch (error) {
+    console.error('Error fetching task details:', error);
+    res.status(500).json({ msg: "An error occurred" });
+  }
+});
+
+app.post('/tasks/:taskId/complete', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const task = await db('task').where({ id: taskId }).first();
+    if(task){
+      await db('task').where({ id: taskId }).update({ completed: true });
+      // Emit to a room specific to the client
+      io.to(`client-${task.id}`).emit('task_completed', { taskId });
+      res.json({ success: true, msg: "Task marked as complete" });
+    } else {
+      res.status(404).json({ success: false, msg: "Task not found" });
+    }
+  } catch (error) {
+    console.error('Error completing task:', error);
+    res.status(500).json({ success: false, msg: "An error occurred" });
+  }
+});
+
+app.post('/tasks/:taskId/pay', async (req, res) => {
+    const { taskId } = req.params;
+    const { clientId } = req.body;
+    try {
+        await db('task').where({ id: taskId }).update({ status: 'paid' });
+
+        const task = await db('task').where({ id: taskId }).first();
+        const user = await db('user_info').where({ id: clientId }).first();
+
+        await db('payment').insert({
+            task_id: taskId,
+            user_id: user.id,
+            amount: task.price_per_hour,
+        });
+
+        await db('history').insert({
+            task_id: taskId,
+            user_id: user.id,
+            freelancer_id: task.freelancer_id,
+            task_title: task.description,
+            date_finished: new Date(),
+            amount: task.price_per_hour,
+        });
+
+        io.to(`client-${clientId}`).emit('update_task_counter', { action: 'decrement' });
+        res.json({ success: true, msg: "Payment successful" });
+    } catch (error) {
+        console.error('Error processing payment:', error);
+        res.status(500).json({ success: false, msg: "An error occurred" });
+    }
+});
+
+app.get('/tasks/:clientId/in-progress-count', async (req, res) => {
+    const { clientId } = req.params;
+    try {
+        const count = await db('task')
+            .where({ id: clientId, status: 'in-progress' })
+            .count('id as count')
+            .first();
+        res.json(count);
+    } catch (error) {
+        console.error('Error fetching in-progress task count:', error);
+        res.status(500).json({ error: 'Failed to fetch in-progress task count' });
+    }
+});
+
+app.get('/history/:userType/:userId', async (req, res) => {
+    const { userType, userId } = req.params;
+    try {
+        let query = db('history');
+        if (userType === 'client') {
+            query = query.where({ user_id: userId }).join('freelancers', 'history.freelancer_id', 'freelancers.id').select('history.*', 'freelancers.name as freelancer_name');
+        } else if (userType === 'freelancer') {
+            query = query.where({ freelancer_id: userId }).join('user_info', 'history.user_id', 'user_info.id').select('history.*', 'user_info.name as user_name');
+        }
+        const history = await query;
+        res.json(history);
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        res.status(500).json({ error: 'Failed to fetch history' });
+    }
+});
 
 // Create or get chat room
 app.post('/chats', async (req, res) => {
@@ -1132,7 +1430,7 @@ app.get('/chats/:userId', async (req, res) => {
 });
 
 // Get messages for a chat
-app.get('/chats/:roomId/messages', async (req, res) => {
+/*app.get('/chats/:roomId/messages', async (req, res) => {
   const { roomId } = req.params;
   const { page = 1, limit = 50 } = req.query;
   const offset = (page - 1) * limit;
@@ -1157,11 +1455,36 @@ app.get('/chats/:roomId/messages', async (req, res) => {
     console.error('Error fetching messages:', error);
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
+});*/
+app.get('/chats/:roomId/messages', async (req, res) => {
+  const { roomId } = req.params;
+  const { page = 1, limit = 50 } = req.query;
+  const offset = (page - 1) * limit;
+
+  try {
+    const chat = await db('chat').where({ room_id: roomId }).first();
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+    const messages = await db('message')
+      .where({ chat_id: chat.id })
+      .select(
+        'message.*',
+        db.raw('CAST(sender_id AS TEXT) as sender')
+      )
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
+
+    res.json(messages.reverse());
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
 });
 
 // Save a message
-/*app.post('/messages', async (req, res) => {
-  const { roomId, senderId, message} = req.body;
+/*app.post('/messages', uploadChatImage.single('image'), async (req, res) => {
+  const { roomId, senderId, message, latitude, longitude } = req.body;
   
   try {
     const chat = await db('chat')
@@ -1172,35 +1495,6 @@ app.get('/chats/:roomId/messages', async (req, res) => {
       return res.status(404).json({ error: 'Chat not found' });
     }
     
-    const [savedMessage] = await db('message')
-      .insert({
-        chat_id: chat.id,
-        sender_id: senderId,
-        message: message,
-      })
-      .returning('*');
-    
-    // Emit the message via Socket.io
-    io.to(roomId).emit('receive_message', {
-      id: savedMessage.id,
-      sender: senderId,
-      message: message,
-      timestamp: savedMessage.created_at
-    });
-    
-    res.json(savedMessage);
-  } catch (error) {
-    console.error('Error saving message:', error);
-    res.status(500).json({ error: 'Failed to save message' });
-  }
-});*/
-app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
-  const { roomId, senderId, message, latitude, longitude } = req.body;
-  
-  try {
-    const chat = await db('chat').where({ room_id: roomId }).first();
-    if (!chat) return res.status(404).json({ error: 'Chat not found' });
-
     let messageData = {
       chat_id: chat.id,
       sender_id: senderId,
@@ -1212,7 +1506,7 @@ app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
     if (req.file) {
       messageData.message_type = 'image';
       messageData.message = message || 'Shared an image';
-      messageData.image_path = req.file.filename; // Store the filename
+      messageData.image_path = req.file.filename;
     }
 
     // Handle location
@@ -1223,9 +1517,11 @@ app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
       messageData.message = message || 'Shared location';
     }
 
-    const [savedMessage] = await db('message').insert(messageData).returning('*');
+    const [savedMessage] = await db('message')
+      .insert(messageData)
+      .returning('*');
     
-    // Format response for Socket.io
+    // Format the response for Socket.io
     const socketMessage = {
       id: savedMessage.id,
       sender: savedMessage.sender_id.toString(),
@@ -1234,10 +1530,13 @@ app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
       type: savedMessage.message_type,
       latitude: savedMessage.latitude,
       longitude: savedMessage.longitude,
-      image_path: savedMessage.image_path // Include image path
+      image_path: savedMessage.image_path,
+      room: roomId // Add room to the message
     };
 
+    // Emit the message via Socket.io to the room
     io.to(roomId).emit('receive_message', socketMessage);
+    
     res.json(savedMessage);
   } catch (error) {
     console.error('Error saving message:', error);
@@ -1264,6 +1563,172 @@ app.get('/api/chats/:roomId/participants', async (req, res) => {
   } catch (error) {
     console.error('Error fetching chat participants:', error);
     res.status(500).json({ error: 'Failed to fetch participants' });
+  }
+});*/
+app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
+  const { roomId, senderId, message, latitude, longitude } = req.body;
+  
+  try {
+    const chat = await db('chat').where({ room_id: roomId }).first();
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+    let messageData = {
+      chat_id: chat.id,
+      sender_id: senderId,
+      message: message || '',
+      message_type: 'text',
+      is_read: false
+    };
+
+    // Handle image upload and location
+    if (req.file) {
+      messageData.message_type = 'image';
+      messageData.message = message || 'Shared an image';
+      messageData.image_path = req.file.filename;
+    }
+
+    if (latitude && longitude) {
+      messageData.message_type = 'location';
+      messageData.latitude = latitude;
+      messageData.longitude = longitude;
+      messageData.message = message || 'Shared location';
+    }
+
+    const [savedMessage] = await db('message').insert(messageData).returning('*');
+    
+    // Format the response for Socket.io
+    const socketMessage = {
+      id: savedMessage.id,
+      sender: savedMessage.sender_id.toString(),
+      message: savedMessage.message,
+      timestamp: savedMessage.created_at,
+      type: savedMessage.message_type,
+      latitude: savedMessage.latitude,
+      longitude: savedMessage.longitude,
+      image_path: savedMessage.image_path,
+      room: roomId,
+      is_read: savedMessage.is_read
+    };
+
+    // Emit the message via Socket.io to the room
+    io.to(roomId).emit('receive_message', socketMessage);
+    
+    // Also emit a notification event to update unread counts
+    const recipientId = senderId == chat.client_id ? chat.freelancer_id : chat.client_id;
+    
+    // Get updated unread counts for the recipient
+    const unreadCounts = await db('message')
+      .join('chat', 'message.chat_id', 'chat.id')
+      .select(
+        'chat.room_id',
+        db.raw('COUNT(*) as unread_count')
+      )
+      .where(function() {
+        this.where('chat.client_id', recipientId).orWhere('chat.freelancer_id', recipientId);
+      })
+      .andWhere('message.sender_id', '!=', recipientId)
+      .andWhere('message.is_read', false)
+      .groupBy('chat.room_id');
+    
+    // Convert to a simple object
+    const countsObj = {};
+    let totalUnread = 0;
+    
+    unreadCounts.forEach(item => {
+      const count = parseInt(item.unread_count);
+      countsObj[item.room_id] = count;
+      totalUnread += count;
+    });
+    
+    // Emit notification to the recipient
+    io.to(`user_${recipientId}`).emit('new_notification', {
+      roomId,
+      unreadCount: countsObj[roomId] || 0,
+      totalUnread
+    });
+    
+    res.json(savedMessage);
+  } catch (error) {
+    console.error('Error saving message:', error);
+    res.status(500).json({ error: 'Failed to save message' });
+  }
+});
+
+// Add a function to get unread count for a user
+// Update the getUnreadCount function to be more reliable
+async function getUnreadCount(userId) {
+  try {
+    const result = await db('message')
+      .join('chat', 'message.chat_id', 'chat.id')
+      .where(function() {
+        this.where('chat.client_id', userId).orWhere('chat.freelancer_id', userId);
+      })
+      .andWhere('message.sender_id', '!=', userId)
+      .andWhere('message.is_read', false)
+      .count('* as unread_count')
+      .first();
+    
+    return parseInt(result.unread_count) || 0;
+  } catch (error) {
+    console.error('Error getting unread count:', error);
+    return 0;
+  }
+}
+
+// Add a new endpoint to get unread counts per conversation
+app.get('/chats/:userId/unread-counts', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    const unreadCounts = await db('message')
+      .join('chat', 'message.chat_id', 'chat.id')
+      .select(
+        'chat.room_id',
+        db.raw('COUNT(*) as unread_count')
+      )
+      .where(function() {
+        this.where('chat.client_id', userId).orWhere('chat.freelancer_id', userId);
+      })
+      .andWhere('message.sender_id', '!=', userId)
+      .andWhere('message.is_read', false)
+      .groupBy('chat.room_id');
+    
+    // Convert to a simple object
+    const countsObj = {};
+    unreadCounts.forEach(item => {
+      countsObj[item.room_id] = parseInt(item.unread_count);
+    });
+    
+    res.json(countsObj);
+  } catch (error) {
+    console.error('Error fetching unread counts:', error);
+    res.status(500).json({ error: 'Failed to fetch unread counts' });
+  }
+});
+
+app.post('/messages/mark-read', async (req, res) => {
+  const { roomId, userId } = req.body;
+  
+  try {
+    const chat = await db('chat').where({ room_id: roomId }).first();
+    if (!chat) return res.status(404).json({ error: 'Chat not found' });
+    
+    // Mark all messages in this chat as read for this user
+    await db('message')
+      .update({ is_read: true })
+      .where('chat_id', chat.id)
+      .andWhere('sender_id', '!=', userId);
+    
+    // Get updated unread count
+    const unreadCount = await getUnreadCount(userId);
+    
+    // Emit notification update
+    io.to(`user_${userId}`).emit('notification_update', { unreadCount });
+    
+    res.json({ success: true, unreadCount });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Failed to mark messages as read' });
   }
 });
 
@@ -1293,6 +1758,46 @@ app.get('/api/user-image/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user image' });
   }
 });
+
+
+// Validation endpoint to check if user is authenticated
+app.get('/validate', async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    
+    if (!token) {
+      return res.json({ authenticated: false });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    
+    // Get fresh user data from database
+    const user = await db('user_info')
+      .select('id', 'username', 'role', 'status')
+      .where('id', decoded.id)
+      .first();
+      
+    if (!user) {
+      res.clearCookie('token');
+      return res.json({ authenticated: false });
+    }
+    
+    res.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        name: user.username,
+        role: user.role,
+        status: user.status
+      }
+    });
+  } catch (error) {
+    console.error('Validation error:', error);
+    res.clearCookie('token');
+    res.json({ authenticated: false });
+  }
+});
+
 
 const port = process.env.PORT || 5000
 server.listen(port, () => {

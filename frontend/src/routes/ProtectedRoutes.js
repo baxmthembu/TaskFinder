@@ -1,10 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../provider/AuthProvider.js";
+import { useAuth } from "../provider/Authprovider.js";
 
 export const ProtectedRoute = () => {
-    const {token} = useAuth()
+    const {user,loading} = useAuth()
 
-    if (token === null) {
+    if (loading) {
     return <div>Loading...</div>; // temporary loader
   }
 
@@ -13,5 +13,5 @@ export const ProtectedRoute = () => {
     }
 
     return <Outlet />*/
-    return token ? <Outlet /> : <Navigate to="/navigator" />;
+    return user ? <Outlet /> : <Navigate to="/navigator" />;
 }

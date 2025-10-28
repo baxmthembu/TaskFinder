@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {useNavigate, Link} from 'react-router-dom'
-import styles from './register.module.css';
 import {toast} from 'react-toastify';
 import Axios from 'axios';
 import logo from '../Images/taskaroo.svg'
@@ -15,8 +14,7 @@ function Register() {
         username: '',
     });
 
-    const [userLocation, setUserLocation] = useState(null)
-    const [nearbyWorkers, setNearbyWorkers] = useState([]);
+    const [ ,setUserLocation] = useState(null)
 
 
     const getLocation = () => {
@@ -97,65 +95,145 @@ function Register() {
   
 
     return (
-        <div className={styles.app}>
-          <header className={styles.header}>
-          <div className={styles.back_button}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+        <header className="bg-transparent py-4 px-6 flex items-center justify-between">
+          <div className="back-button">
             <Link to="/login">
-              <button className={styles.button28}>Back</button>
-           </Link>
+              <button className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                Back to Login
+              </button>
+            </Link>
           </div>
-            <div className={styles.logo}>
-                <img src={logo} alt='logo' />
-            </div>
-          </header>
-            <div className={styles.login}>
-              {/*<div className={styles.back}>
-                <Link to="/login" className={styles.back}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className={styles.icon}><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
-                </Link>
-              </div>*/}
-              <h1>Register</h1>
-              <hr  />
-                <form onSubmit={handleSubmit}>
-                    <div className={styles.container}>
-                        <label>Name<span className={styles.error}>*</span></label>
-                        <input value={formData.name} onChange={handleChange}type='text' name='name' placeholder='Enter your name' />
-                    </div>
+          <div className="logo ml-10 mt-9">
+            <img src={logo} alt="Logo" className="max-w-[25rem]" />
+          </div>
+        </header>
 
-                    <div className={styles.container}>
-                        <label>Surname<span className={styles.error}>*</span></label>
-                        <input value={formData.surname} onChange={handleChange}type='text' name='surname' placeholder='Enter your surname' />
-                    </div>
+        <div className="flex flex-1 items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-2xl">
+            <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Create Account</h1>
+            <p className="text-gray-600 text-center mb-8">Join us today! Please fill in your details</p>
+      
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Name Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.name} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="name" 
+                    placeholder="Enter your name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
 
-                    <div className={styles.container}>
-                        <label>Password<span className={styles.error}>*</span></label>
-                        <input value={formData.password} onChange={handleChange}type='password' name='password' placeholder='Enter your password'  />
-                    </div>
+                {/* Surname Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Surname <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.surname} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="surname" 
+                    placeholder="Enter your surname"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
 
-                    <div className={styles.container}>
-                        <label>Email<span className={styles.error}>*</span></label>
-                        <input value={formData.email} onChange={handleChange}type='email' name='email' placeholder='Enter your email'  />
-                    </div>
+                {/* Password Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.password} 
+                    onChange={handleChange}
+                    type="password" 
+                    name="password" 
+                    placeholder="Enter your password"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
 
-                    <div className={styles.container}>
-                        <label>Phone <span className={styles.error}>*</span></label>
-                        <input value={formData.phone} onChange={handleChange} type='tel' name='phone' className="form-control" placeholder='Enter your phone number'></input>
-                    </div>
+                {/* Email Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.email} 
+                    onChange={handleChange}
+                    type="email" 
+                    name="email" 
+                    placeholder="Enter your email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
 
-                    <div className={styles.container}>
-                        <label>UserName <span className={styles.error}>*</span></label>
-                        <input value={formData.username} onChange={handleChange} type='text' name='username' placeholder='Enter your username' />
-                    </div>
+                {/* Phone Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.phone} 
+                    onChange={handleChange}
+                    type="tel" 
+                    name="phone" 
+                    placeholder="Enter your phone number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
 
-                    <div className={styles.buttoncontainer}>
-                        <button type="submit" className={styles.buttons}>Register</button>     
-                    </div>
-                </form>
-            </div>
+                {/* Username Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Username <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.username} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="username" 
+                    placeholder="Enter your username"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              {/* Register Button */}
+              <div className="mt-8">
+                <button 
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg"
+                >
+                  Create Account
+                </button>
+              </div>
+
+              {/* Login Link */}
+              <div className="text-center mt-6">
+                <p className="text-gray-600">
+                  Already have an account? 
+                  <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-medium ml-1 transition-colors">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+         </div>
         </div>
     )
 }
-
-  
 
 export default Register

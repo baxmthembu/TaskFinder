@@ -1,29 +1,21 @@
-import { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
-import styles from '../Login/login.module.css';
 import ReCAPTCHA from 'react-google-recaptcha';
-import Axios from 'axios';
-import { Spinner } from 'react-bootstrap';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { UserContext } from "../../UserContext";
-import { useAuth } from "../../provider/AuthProvider.js";
+import { useAuth } from "../../provider/Authprovider.js";
 import logo from '../Images/taskaroo.svg'
 
 const Login = () => {
-  //const [clientId, setClientId] = useState('')
-  const { setUser } = useContext(UserContext);
   const [captchaValue, setCaptchaValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const {setToken} = useAuth()
+  const {login} = useAuth()
   const [ , setUserLocation] = useState({ latitude: null, longitude: null });
   const [formData, setFormData] = useState({
     username: '',
     password:'',
   });
-
-  //const usenavigate = useNavigate();
 
   const getLocation = () => {
     return new Promise((resolve, reject) => {
@@ -45,41 +37,38 @@ const Login = () => {
     });
   };
 
-  const ProceedLogin = async (e) => {
+
+const ProceedLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       if (validate()) {
         const location = await getLocation();
-        const response = await Axios.post('http://localhost:3001/login', { ...formData, ...location });
-        //const response = await Axios.post(`${process.env.REACT_APP_API_URL}/login`, { ...formData, ...location});
-
-        if (response.data.msg === "Authentication Successful") {
-          //console.log(user.role)
-          const userId = response.data.user.id
-          const userToken = response.data.user.token
-          const userRole = response.data.user.role
-          localStorage.setItem('role', userRole)
-          localStorage.setItem('id', userId)
-          setUser({id: userId, role: userRole});
-          localStorage.setItem('token', userToken)
-          setToken(userToken)
-          toast.success(`Welcome ${response.data.user.name}`, {
+        const credentials = { ...formData, ...location };
+        
+        const result = await login(credentials);
+        
+        if (result.success) {
+          toast.success(`Welcome ${result.user.name}`, {
             position: toast.POSITION.TOP_CENTER
           });
+          
+          // Redirect based on user role
           setTimeout(() => {
             window.location.hash = '#/service_form';
           }, 100);
         } else {
-          console.error('Authentication failed');
-          toast.error('Log In Error', {
+          toast.error(result.error || 'Log In Error', {
             position: toast.POSITION.TOP_CENTER
           });
         }
       }
     } catch (error) {
       console.log('Error: ' + error);
+      toast.error('An unexpected error occurred', {
+        position: toast.POSITION.TOP_CENTER
+      });
     } finally {
       setIsLoading(false);
     }
@@ -108,48 +97,91 @@ const Login = () => {
   };
 
   return (
-    <div>
-    <div className={styles.app}>
-      <header className={styles.header}>
-      <div className={styles.back_button}>
-        <Link to="/">
-           <button className={styles.button28}>Back</button>
-        </Link>
-      </div>
-      <div className={styles.logo}>
-        <img src={logo} alt="Logo" />
-      </div>
-      </header>
-      <div className={styles.loginform}>
-        <h1>Sign in</h1>
-        <form onSubmit={ProceedLogin}>
-          <div className={styles.inputcontainer}>
-            <label>Username<span className={styles.errmsg}>*</span> </label>
-            <input type="text" value={formData.username} onChange={handleChange} name='username' />
-          </div>
-          <div className={styles.inputcontainer}>
-            <label>Password<span className={styles.errmsg}>*</span></label>
-            <input type="password" value={formData.password} onChange={handleChange} name='password' />
-          </div>
-          <ReCAPTCHA
-            sitekey="6Lc3CKYnAAAAAHjblBln1V7QStAE_H6kD5tYuMPl"
-            onChange={handleCaptchaChange}
-          />
-          <div className={styles.buttoncontainer}>
-            <button type="submit" className={`submit ${captchaValue ? 'enabled' : 'disabled'}`}
-              disabled={!captchaValue || isLoading} style={{ borderRadius: '5px' }} id={styles.buttons}>
-              {isLoading ? (
-                <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-              ) : (
-                'Login'
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <header className="bg-transparent py-4 px-6 flex items-center justify-between">
+        <div className="back-button">
+          <Link to="/">
+            <button className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+              Back
             </button>
-          </div>
-          <div className={styles.createaccount}>
-            <p>or<Link to="/register" className={styles.text}>create account</Link></p>
-          </div>
-        </form>
+          </Link>
+        </div>
+        <div className="logo ml-10 mt-9"> 
+          <img src={logo} alt="Logo" className="max-w-[25rem]" />
+        </div>
+      </header>
+  
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Sign In</h1>
+          <p className="text-gray-600 text-center mb-8">Welcome back! Please enter your details</p>
+      
+          <form onSubmit={ProceedLogin}>
+            <div className="mb-5">
+              <label className="block text-gray-700 font-medium mb-2">Username<span className="text-red-500">*</span></label>
+              <input 
+                type="text" 
+                value={formData.username} 
+                onChange={handleChange} 
+                name='username'
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                placeholder="Enter your username"
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-700 font-medium mb-2">Password<span className="text-red-500">*</span></label>
+              <input 
+                type="password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                name='password'
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                placeholder="Enter your password"
+              />
+            </div>
+        
+            <div className="mb-6">
+              <ReCAPTCHA
+                sitekey="6Lc3CKYnAAAAAHjblBln1V7QStAE_H6kD5tYuMPl"
+                onChange={handleCaptchaChange}
+                className="flex justify-center"
+              />
+            </div>
+        
+        
+            <div className="button-container mb-6">
+              <button 
+                type="submit"
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${captchaValue 
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                disabled={!captchaValue || isLoading} 
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </div>
+        
+            <div className="text-center">
+              <p className="text-gray-600">Don't have an account? 
+                <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-medium ml-1 transition-colors">
+                  Create account
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
+  
       <ToastContainer
         autoClose={5000}
         hideProgressBar={true}
@@ -157,7 +189,6 @@ const Login = () => {
         theme="colored"
         transition={Bounce}
       />
-    </div>
     </div>
   );
 };

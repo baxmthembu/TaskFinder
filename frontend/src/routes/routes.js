@@ -1,6 +1,6 @@
-import { RouterProvider, createBrowserRouter, createHashRouter } from "react-router-dom";
+/*import { RouterProvider, createBrowserRouter, createHashRouter } from "react-router-dom";
 import { useContext, useNavigate, useState, useEffect, Children } from "react";
-import { useAuth } from "../provider/AuthProvider";
+import { useAuth } from "./../provider/Authprovider.js";
 import { ProtectedRoute } from "./ProtectedRoutes";
 //import SearchBar from "../Components/SearchBar/searchbar";
 import Home from "../Components/Home/home";
@@ -15,20 +15,10 @@ import FreelancerAbout from "../Worker/FreelancerAbout/freelancer_about";
 import Navigator from "../Components/navigator";
 import Login from "../Components/Login/login";
 import Register from "../Components/Register/register";
-import { UserContext } from "../UserContext";
-import { Link } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 
 const Routes = () => {
     const { token } = useAuth();
-    const { user } = useContext(UserContext);
-    const {loading, setLoading} = useContext(UserContext);
-  
-    // Simulate a loading state while user is being set from localStorage
-    /*useEffect(() => {
-      const timer = setTimeout(() => setLoading(false), 300); // small delay to wait for useEffect in UserContext
-      return () => clearTimeout(timer);
-    }, []);*/
   
     // While checking localStorage/user context
     if (loading) return <div>Loading...</div>;
@@ -105,7 +95,7 @@ const Routes = () => {
     return <RouterProvider router={router} />;
   };
   
-export default Routes
+export default Routes*/
  
 /*const router = createBrowserRouter([
     { path: "/", element: <Navigator /> },
@@ -116,3 +106,77 @@ export default Routes
     })),
     catchAllRoute,
   ]);*/
+
+
+// routes.js
+import { RouterProvider, createHashRouter, Navigate } from "react-router-dom";
+import { useAuth } from "./../provider/Authprovider.js";
+import Home from "../Components/Home/home";
+import ServiceRequestForm from "../Components/ServiceRequestForm/service_form";
+import About from "../Components/About/about";
+import FreelancerLocationTracker from "../WorkerHome/workerhome";
+import Chat from "../Chat";
+import WorkerRegister from "../Worker/Register/workerRegister";
+import WorkerLogin from "../Worker/Login/worker_login";
+import FreelancerHome from "../Worker/FreelancerHome/freelancerhome";
+import FreelancerAbout from "../Worker/FreelancerAbout/freelancer_about";
+import Navigator from "../Components/navigator";
+import Login from "../Components/Login/login";
+import Register from "../Components/Register/register";
+import { ProtectedRoute } from "./ProtectedRoutes";
+
+const Routes = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  const router = createHashRouter([
+    {
+      path: "/",
+      element: user ? <Navigate to={user.role === "client" ? "/home" : "/freelancerhome"} replace /> : <Navigate to="/navigator" replace />
+    },
+    {
+      path: "/navigator",
+      element: <Navigator />
+    },
+    {
+      path: "/login",
+      element: <Login />
+    },
+    {
+      path: "/register",
+      element: <Register />
+    },
+    {
+      path: "/workerRegister",
+      element: <WorkerRegister />
+    },
+    {
+      path: "/worker_login",
+      element: <WorkerLogin />
+    },
+    {
+      path: "/",
+      element: <ProtectedRoute />,
+      children: [
+        { path: "/home", element: <Home /> },
+        { path: "/service_form", element: <ServiceRequestForm /> },
+        { path: "/workerhome", element: <FreelancerLocationTracker /> },
+        { path: "/chat", element: <Chat /> },
+        { path: "/about", element: <About /> },
+        { path: "/freelancerhome", element: <FreelancerHome /> },
+        { path: "/freelancer_about", element: <FreelancerAbout /> },
+      ]
+    },
+    {
+      path: "*",
+      element: user ? <Navigate to={user.role === "client" ? "/home" : "/freelancerhome"} replace /> : <Navigate to="/navigator" replace />
+    }
+  ]);
+
+  return <RouterProvider router={router} />;
+};
+
+export default Routes;

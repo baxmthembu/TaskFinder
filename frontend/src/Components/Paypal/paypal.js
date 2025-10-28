@@ -1,83 +1,72 @@
-import React, {useRef, useEffect, useState} from 'react'
-import styles from '../Paypal/paypal.module.css'
-import { right } from '@popperjs/core'
+import React, { useState } from 'react';
+import './paypal.module.css';
 
+const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
 
-const PayPal = () => {
+  const handlePayment = () => {
+    if (paymentMethod === 'cash') {
+      onPaymentSuccess('Cash Payment');
+    } else {
+      // Simple validation
+      if (cardNumber && expiryDate && cvv) {
+        onPaymentSuccess('Credit/Debit Card Payment');
+      } else {
+        alert('Please fill in all card details.');
+      }
+    }
+  };
 
-    const [checkout, setCheckOut] = useState(false)
-    
-    const paypalRef = useRef()
+  return (
+    <div className="paypal-container">
+      <h3>Pay {amount}</h3>
+      <div className="payment-methods">
+        <button
+          className={paymentMethod === 'cash' ? 'active' : ''}
+          onClick={() => setPaymentMethod('cash')}
+        >
+          Cash
+        </button>
+        <button
+          className={paymentMethod === 'card' ? 'active' : ''}
+          onClick={() => setPaymentMethod('card')}
+        >
+          Credit/Debit Card
+        </button>
+      </div>
+      {paymentMethod === 'card' && (
+        <div className="card-details">
+          <input
+            type="text"
+            placeholder="Card Number"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Expiry Date (MM/YY)"
+            value={expiryDate}
+            onChange={(e) => setExpiryDate(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="CVV"
+            value={cvv}
+            onChange={(e) => setCvv(e.target.value)}
+          />
+        </div>
+      )}
+      <button className="pay-now-btn" onClick={handlePayment}>
+        Pay Now
+      </button>
+      <button className="cancel-btn" onClick={onPaymentCancel}>
+        Cancel
+      </button>
+    </div>
+  );
+};
 
-    
-    useEffect(() => {
-         // Function to modify the PayPal button width
-        const resizePayPalButton = () => {
-            const newWidth = "170px"; // Set the desired width here
-            paypalRef.current.style.width = newWidth;
-        };
-
-        const buttons = window.paypal.Buttons({
-            style: {
-                layout: 'horizontal',
-                color:  'blue',
-                shape:  'rect',
-                disableMaxWidth: true,
-                tagline: false,
-                height: 35,
-                marginRight: 5,
-                right: 30,
-                label:'pay'
-              },
-            createOrder: (data, actions, err) => {
-                return actions.order.create({
-                    intent: "CAPTURE",
-                    purchase_units: [
-                        {
-                            description: "babysitting",
-                            amount: {
-                                currency_code: "USD",
-                                value: 250
-                            }
-                        }
-                    ]
-                })
-            },
-            onApprove: async (data, actions) => {
-                const order = await actions.order.capture()
-                console.log(order)
-            },
-            onError: (err) => {
-                console.log(err)
-            },
-        });
-
-        if(checkout) {
-            buttons.render(paypalRef.current);
-            resizePayPalButton()
-        }
-
-    }, [checkout]);
-
-    const handlePayment = () => {
-        // Set the checkout state to true when the button is clicked
-        setCheckOut(true);
-      };    
-
-    return (
-        <div>
-            {checkout ? (
-                <div>
-                    {/* Render the PayPal buttons */}
-                    <div ref={paypalRef} id="paypal-button-container"></div>
-                </div>
-            ) : (
-                <button className="button" onClick={handlePayment}>
-                Pay
-                </button>
-            )}
-        </div>       
-    )
-}
-
-export default PayPal
+export default PayPal;

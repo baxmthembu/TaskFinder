@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 import Axios from "axios";
 import { scopedCssBaselineClasses } from "@mui/material";
 import './freelancermap.css';
-import { UserContext } from "../../UserContext";
+import { useAuth } from "../../provider/Authprovider";
 
 //const socket = io.connect('backend/index.js')
 //const socket = io.connect("https://taskfinder.onrender.com")
@@ -80,7 +80,7 @@ const FreelancerMap = ({ initialLocation, data, onDecision}) => {
     height: "500px",
     width: "60%",
     position: "absolute",
-    left: "20%",
+    left: "25%",
     top: "20%",
   };
 

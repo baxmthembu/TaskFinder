@@ -1,17 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import {useState} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {toast, Bounce} from 'react-toastify';
-import Axios, { AxiosError } from 'axios';
-import cloneDeep from 'lodash/cloneDeep';
-//import Plumber from '../Components/Home/home';
+import Axios from 'axios';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { light } from '@mui/material/styles/createPalette';
-import styles from '../Register/workerRegister.module.css';
 import logo from "../../Components/Images/taskaroo.svg"
 
 
-function WorkerRegister({history}){
+function WorkerRegister(){
     const [file, setFile] = useState()
 
     const [formData, setFormData] = useState({
@@ -23,10 +19,9 @@ function WorkerRegister({history}){
         occupation: '',
     })
 
-    const [userLocation, setUserLocation] = useState(null)
+    const [, setUserLocation] = useState(null)
 
     const navigate = useNavigate()
-    //const logo3 = require('./../Components/Images/logo.png')
 
 
     const IsValidate = () => {
@@ -62,9 +57,6 @@ function WorkerRegister({history}){
         return;
       }
   
-      /*const formData1 = new FormData();
-      formData1.append("image", file);*/
-
       const location = await getLocation()
 
       //append form input into my form data to send it to my server
@@ -138,66 +130,171 @@ function WorkerRegister({history}){
       });
     };  
 
-    const logo1 = require('../../Components/Images/Taskify.png');
-
 
     return (
-        <div className={styles.app}>
-          <header className={styles.header}>
-          <div className={styles.back_button}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+        <header className="bg-transparent py-4 px-6 flex items-center justify-between">
+          <div className="back-button">
             <Link to="/worker_login">
-              <button className={styles.button28}>Back</button>
-           </Link> 
+              <button className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                Back to Login
+              </button>
+            </Link>
           </div>
-          <div className={styles.logo}>
-            <img src= {logo} />
+          <div className="logo ml-10 mt-9">
+            <img src={logo} alt="Logo" className="max-w-[25rem]" />
           </div>
-          </header>
-            <div className={styles.loginforms}>
-              <h1>Register</h1>
-              <hr />
-                <form onSubmit={uploadImage} /*action='/upload' enctype='multipart/form-data'*/  encType='multipart/form-data'>
-                    <div className={styles.inputcontainers}>
-                        <label>Name <span className={styles.errmsg}>*</span></label>
-                        <input value={formData.name} onChange={handleChange}type='text' name='name' placeholder='Name'/>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                        <label>Surname<span className={styles.errmsg}>*</span></label>
-                        <input value={formData.surname} onChange={handleChange}type='text' name='surname' placeholder='Surname'/>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                        <label>Password<span className={styles.errmsg}>*</span></label>
-                        <input value={formData.password} onChange={handleChange}type='password' name='password'  placeholder='Password'/>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                        <label>Email<span className={styles.errmsg}>*</span></label>
-                        <input value={formData.email} onChange={handleChange}type='email' name='email'  placeholder='Email'/>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                        <label>Phone <span className={styles.errmsg}>*</span></label>
-                        <input value={formData.phone} onChange={handleChange} type='tel' name='phone' className={styles.formcontrol} placeholder='Phone Number'></input>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                        <label>Occupation <span className={styles.errmsg}>*</span></label>
-                        <input value={formData.occupation} onChange={handleChange} type='text' name='occupation' className={styles.formcontrol} placeholder='Occupation'></input>
-                    </div>
-                    <div className={styles.inputcontainers}>
-                      <label>Upload image of yourself <span className={styles.errmsg}>*</span></label>
-                        <input type='file' /*accept='image/*'*/ onChange={handleImageChange} name='images' />
-                    </div>
-                    <div className={styles.buttoncontainers}>
-                        <button className={styles.buttons} >Register</button>      
-                    </div>
-                </form>
-            </div>
-            <ToastContainer 
-            autoClose={5000}
-            hideProgressBar={true}
-            newestOnTop={false}
-            theme="colored"
-            transition={Bounce}
-            />
+        </header>
+
+        <div className="flex flex-1 items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-2xl">
+            <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Worker Registration</h1>
+            <p className="text-gray-600 text-center mb-8">Join our team! Please fill in your details</p>
+      
+            <form onSubmit={uploadImage} encType='multipart/form-data'>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Name Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.name} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="name" 
+                    placeholder="Your Name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                {/* Surname Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Surname <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.surname} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="surname" 
+                    placeholder="Your Surname"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                {/* Password Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.password} 
+                    onChange={handleChange}
+                    type="password" 
+                    name="password" 
+                    placeholder="Create Password"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                {/* Email Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.email} 
+                    onChange={handleChange}
+                    type="email" 
+                    name="email" 
+                    placeholder="your.email@example.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                {/* Phone Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.phone} 
+                    onChange={handleChange}
+                    type="tel" 
+                    name="phone" 
+                    placeholder="Phone Number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                {/* Occupation Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Occupation <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    value={formData.occupation} 
+                    onChange={handleChange}
+                    type="text" 
+                    name="occupation" 
+                    placeholder="Your Occupation"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              {/* Image Upload Field - Full Width */}
+              <div className="mb-6 mt-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Upload Profile Image <span className="text-red-500">*</span>
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-400 transition-colors">
+                  <input 
+                    type="file" 
+                    onChange={handleImageChange} 
+                    name="images"
+                    className="w-full"
+                    accept="image/*"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">PNG, JPG, JPEG up to 5MB</p>
+                </div>
+              </div>
+
+              {/* Register Button */}
+              <div className="mt-6">
+                <button 
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg"
+                >
+                  Register as Worker
+                </button>
+              </div>
+
+              {/* Login Link */}
+              <div className="text-center mt-6">
+                <p className="text-gray-600">
+                  Already have an account? 
+                  <Link to="/worker_login" className="text-indigo-600 hover:text-indigo-800 font-medium ml-1 transition-colors">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
         </div>
+
+        <ToastContainer 
+          autoClose={5000}
+          hideProgressBar={true}
+          newestOnTop={false}
+          theme="colored"
+          transition={Bounce}
+        />
+      </div>
     )
 }
 
