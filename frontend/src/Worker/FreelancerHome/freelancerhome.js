@@ -2,7 +2,7 @@ import Axios from 'axios';
 import React, { useState, useContext, useEffect } from 'react';
 import './freelancerhome.css';
 import FreelancerMap from '../FreelancerMap/freelancermap';
-import io from 'socket.io-client';
+import socket from '../../socket';
 import Sidebar from '../Freelancer_Sidebar/freelancer_sidebar';
 import { useAuth } from '../../provider/Authprovider';
 import logo from '../../Components/Images/taskaroo.svg'
@@ -12,7 +12,6 @@ import TaskStatus from '../../Components/TaskStatus/TaskStatus';
 import History from '../../Components/History/History';
 
 //const socket = io('https://taskfinder.onrender.com')
-const socket = io('http://localhost:3001');
 
 
 const FreelancerHome = () => {
@@ -27,11 +26,18 @@ const FreelancerHome = () => {
     const [currentTask, setCurrentTask] = useState(null);
     const [showHistory, setShowHistory] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-    useEffect(() => {
-        socket.on('task_accepted', (task) => {
-          setTasks((prevTasks) => [...prevTasks, { ...task, status: 'in_progress' }]);
-        });
+    const [newTasksCount, setNewTasksCount] = useState(0);
+ 
+     useEffect(() => {
+         socket.on('task_accepted', (task) => {
+            setTasks((prevTasks) => {
+                if (prevTasks.some((t) => t.id === task.id)) {
+                    return prevTasks;
+                }
+                setNewTasksCount((prev) => prev + 1);
+                return [...prevTasks, { ...task, status: 'in_progress' }];
+            });
+         });
     
         socket.on('task_declined', (task) => {
           alert('Task declined');
@@ -78,85 +84,42 @@ const FreelancerHome = () => {
         return () => clearInterval(interval);
       }, [currentTask]);
 
-    useEffect( () => {
-      if (user && user.role === 'freelancer') {
-        // Identify as freelancer when component mounts
-        socket.emit('freelancer_identify', user.id);
-        // Fetch initial availability status from the database
-        const fetchAvailability = async () => {
-            try {
-              if(user && user.id){
-                socket.emit('freelancer_identify', user.id);
-                const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
-                //const response = await Axios.post(`${process.env.REACT_APP_API_URL}/freelancer/${user.id}/availability`);
-                if (response.status === 200) {
-                    setIsAvailable(response.data.isAvailable);
-                } else {
-                    console.error('Failed to fetch availability');
-                }
-                const locationData = async () => {
-                  const responses = await Axios.get('http://localhost:3001/clients');
-                  //const responses = await Axios.post(`${process.env.REACT_APP_API_URL}/clients`);
-    
-                  if (responses.status === 200) {
-                      setClientsData(responses.data)
-                      console.log(responses.data)
-                  }else{
-                    throw new Error('Failed to fetch clients data')
-                  }
-              }
-               await locationData()
-            }
-            } catch (error) {
-                console.error('Error fetching data:', error );
-            }finally{
-              setLoading(false)
-            }
-            };
+    useEffect(() => {
+    if (user && user.role === 'freelancer') {
+      // Connect and identify the freelancer
+      socket.connect();
+      socket.emit('freelancer_identify', user.id);
 
-            fetchAvailability();
-
-        // Handle browser tab closing
-        const handleBeforeUnload = () => {
-            if (isAvailable && user?.id) {
-                // Not ideal but can help in some cases
-                socket.emit('updateAvailability', { 
-                    freelancerId: user.id, 
-                    isAvailable: false 
-                });
-            }
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        socket.on('receiveLocation', (data) => {
-          if (data?.latitude && data?.longitude) {
-            setClientLocation({
-              lat: parseFloat(data.latitude),
-              lng: parseFloat(data.longitude),
-              serviceRequest: data.serviceRequest
-            });
+      // Fetch initial availability status
+      const fetchAvailability = async () => {
+        try {
+          const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
+          if (response.status === 200) {
+            setIsAvailable(response.data.isAvailable);
+          } else {
+            console.error('Failed to fetch availability');
           }
-        });
-        
+        } catch (error) {
+          console.error('Error fetching availability:', error);
+        }
+      };
 
-        socket.on('receiveAvailability', (availabilityData) => {
-          if (availabilityData.freelancerId === user.id) {
-            setIsAvailable(availabilityData.isAvailable);
-          }
-        });
+      fetchAvailability();
 
-        return () => {
-          socket.off('receiveLocation');
-          socket.off('receiveAvailability');
-          window.removeEventListener('beforeunload', handleBeforeUnload);
-          socket.off('recieveAvailability');
-          if(user && user.role === 'freelancer'){
-            socket.off('freelancer_identify')
-          }
-        };
-      }
-    }, [user, isAvailable]);
+      // This will run when the component unmounts (e.g., tab close, navigation, logout)
+      return () => {
+        console.log(`Unmounting freelancerhome, emitting freelancer-offline for ${user.id}`);
+        // Notify the backend that the freelancer is going offline
+        socket.emit('freelancer-offline', { freelancerId: user.id });
+
+        // Clean up socket listeners to prevent memory leaks
+        socket.off('freelancer_identify');
+        socket.off('receiveLocation');
+        // Disconnect the socket when the component unmounts
+        socket.disconnect();
+      };
+    }
+  }, [user]);
 
     useEffect(() => {
         const handleNewChat = (newChat) => {
@@ -244,27 +207,12 @@ const FreelancerHome = () => {
 
     const toggleAvailability = async () => {
       if(user && user.role === 'freelancer') {
-        try {
-            const newAvailability = !isAvailable;
-            console.log('Toggling availability:', newAvailability , user.id); // Debugging log
-            const response = await Axios.post('http://localhost:3001/available', {
-                freelancerId: user.id,
-                isAvailable: newAvailability
-            });
-            /*const response = await Axios.post(`${process.env.REACT_APP_API_URL}/available`, {
-              freelancerId: user.id,
-              isAvailable: newAvailability
-            });*/
-            if (response.status === 200) {
-                setIsAvailable(newAvailability);
-                socket.emit('updateAvailability', { freelancerId: user.id, isAvailable: newAvailability });
-            } else {
-                console.error('Failed to update availability');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            //setIsAvailable(!newAvailability); // Revert to previous state
-        }
+        const newAvailability = !isAvailable;
+        setIsAvailable(newAvailability);
+        socket.emit('update_availability', {
+          freelancerId: user.id,
+          isAvailable: newAvailability
+        });
       }else{
         console.error('User is not a freelancer or not found')
       }
@@ -295,11 +243,7 @@ const FreelancerHome = () => {
                         name: `${selectedMarker.name} ${selectedMarker.surname}`,
                         role: 'client'
                     },
-                    task: {
-                      ...selectedMarker.serviceRequest,
-                      description: selectedMarker.serviceRequest.task,
-                      status: 'pending'
-                    }
+                    task: selectedMarker.serviceRequest
                 }];
             });
         }
@@ -317,14 +261,13 @@ const FreelancerHome = () => {
 
     const handleAcceptTask = (task, clientName, room) => {
         const newTask = {
-          id: task.id,
-          description: task.task,
+          id: task.task_id,
+          description: task.description,
           clientName: clientName,
           timer: '00:00:00',
           room: room
         };
         socket.emit('accept_task', { room, task: newTask });
-        setTasks((prevTasks) => [...prevTasks, { ...newTask, status: 'in_progress' }]);
       };
     
       const handleDeclineTask = (taskId, room) => {
@@ -431,6 +374,8 @@ const FreelancerHome = () => {
             userType={user.role}
             onFinishTask={handleFinishTask}
             onPay={handlePayTask}
+            newTasksCount={newTasksCount}
+            onViewTasks={() => setNewTasksCount(0)}
         />
         {/* Vertical Divider */}
         <div className="h-6 w-px bg-slate-300 mx-3"></div>

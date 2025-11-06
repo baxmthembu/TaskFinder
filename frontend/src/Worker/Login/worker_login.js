@@ -1,16 +1,16 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, Bounce } from "react-toastify";
 import ReCAPTCHA from 'react-google-recaptcha';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "./../../provider/Authprovider.js";
 import logo from "../../Components/Images/taskaroo.svg"
 
 
 const WorkerLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const {worker_login} = useAuth()
+    const { worker_login, user } = useAuth()
     const [captchaValue, setCaptchaValue] = useState('');
 
     const [formData, setFormData]= useState({
@@ -47,9 +47,6 @@ const WorkerLogin = () => {
             });
           
             // Redirect based on user role
-            setTimeout(() => {
-              window.location.hash = '#/freelancerhome';
-            }, 100);
           } else {
             toast.error(result.error || 'Log In Error', {
               position: toast.POSITION.TOP_CENTER
@@ -75,6 +72,17 @@ const WorkerLogin = () => {
     const handleCaptchaChange = (value) => {
         setCaptchaValue(value);
     }
+        
+  useEffect(() => {
+    if (user && user.role === 'freelancer') {
+      // If user is already logged in as a freelancer, redirect them
+      window.location.hash = '#/freelancerhome';
+    }
+  }, [user]);
+
+  if (user && user.role === 'freelancer') {
+    return <Navigate to="/freelancerhome" replace />;
+  }
         
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">

@@ -109,7 +109,7 @@ export default Routes*/
 
 
 // routes.js
-import { RouterProvider, createHashRouter, Navigate } from "react-router-dom";
+import { RouterProvider, createHashRouter, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./../provider/Authprovider.js";
 import Home from "../Components/Home/home";
 import ServiceRequestForm from "../Components/ServiceRequestForm/service_form";
@@ -123,7 +123,8 @@ import FreelancerAbout from "../Worker/FreelancerAbout/freelancer_about";
 import Navigator from "../Components/navigator";
 import Login from "../Components/Login/login";
 import Register from "../Components/Register/register";
-import { ProtectedRoute } from "./ProtectedRoutes";
+import { ProtectedRoute } from "./ProtectedRoutes.js";
+import WorkerProtectedRoute from "./workerProtectedRoute.js";
 
 const Routes = () => {
   const { user, loading } = useAuth();
@@ -135,45 +136,39 @@ const Routes = () => {
   const router = createHashRouter([
     {
       path: "/",
-      element: user ? <Navigate to={user.role === "client" ? "/home" : "/freelancerhome"} replace /> : <Navigate to="/navigator" replace />
+      element: <Navigator />,
     },
+    { path: "/login", element: <Login /> },
+    { path: "/register", element: <Register /> },
+    { path: "/workerRegister", element: <WorkerRegister /> },
+    { path: "/worker_login", element: <WorkerLogin /> },
+
+    // Client-specific routes
     {
-      path: "/navigator",
-      element: <Navigator />
-    },
-    {
-      path: "/login",
-      element: <Login />
-    },
-    {
-      path: "/register",
-      element: <Register />
-    },
-    {
-      path: "/workerRegister",
-      element: <WorkerRegister />
-    },
-    {
-      path: "/worker_login",
-      element: <WorkerLogin />
-    },
-    {
-      path: "/",
       element: <ProtectedRoute />,
       children: [
         { path: "/home", element: <Home /> },
         { path: "/service_form", element: <ServiceRequestForm /> },
-        { path: "/workerhome", element: <FreelancerLocationTracker /> },
-        { path: "/chat", element: <Chat /> },
         { path: "/about", element: <About /> },
+        { path: "/chat", element: <Chat /> },
+      ],
+    },
+
+    // Freelancer-specific routes
+    {
+      element: <WorkerProtectedRoute />,
+      children: [
         { path: "/freelancerhome", element: <FreelancerHome /> },
         { path: "/freelancer_about", element: <FreelancerAbout /> },
-      ]
+        { path: "/workerhome", element: <FreelancerLocationTracker /> },
+        { path: "/chat", element: <Chat /> },
+      ],
     },
+
     {
       path: "*",
-      element: user ? <Navigate to={user.role === "client" ? "/home" : "/freelancerhome"} replace /> : <Navigate to="/navigator" replace />
-    }
+      element: <Navigate to="/" replace />,
+    },
   ]);
 
   return <RouterProvider router={router} />;

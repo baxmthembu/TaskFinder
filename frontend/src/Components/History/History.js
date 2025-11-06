@@ -7,11 +7,13 @@ const History = ({ userType, userId, isOpen, setIsOpen }) => {
 
     useEffect(() => {
         const fetchHistory = async () => {
-            try {
-                const response = await Axios.get(`http://localhost:3001/history/${userType}/${userId}`);
-                setHistory(response.data);
-            } catch (error) {
-                console.error('Error fetching history:', error);
+            if (userId) {
+                try {
+                    const response = await Axios.get(`http://localhost:3001/history/${userType}/${userId}`);
+                    setHistory(response.data);
+                } catch (error) {
+                    console.error('Error fetching history:', error);
+                }
             }
         };
 

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './paypal.module.css';
 
 const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -11,7 +10,6 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
     if (paymentMethod === 'cash') {
       onPaymentSuccess('Cash Payment');
     } else {
-      // Simple validation
       if (cardNumber && expiryDate && cvv) {
         onPaymentSuccess('Credit/Debit Card Payment');
       } else {
@@ -20,51 +18,61 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
     }
   };
 
+  const buttonBaseClasses = 'w-full py-3 px-4 rounded-lg border text-sm font-semibold transition-all duration-300';
+  const activeClasses = 'bg-blue-600 text-white border-blue-600';
+  const inactiveClasses = 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100';
+
   return (
-    <div className="paypal-container">
-      <h3>Pay {amount}</h3>
-      <div className="payment-methods">
+    <div className="p-4 bg-gray-50 rounded-b-lg w-full">
+      <div className="flex justify-center space-x-2 sm:space-x-4 mb-6">
         <button
-          className={paymentMethod === 'cash' ? 'active' : ''}
+          className={`${buttonBaseClasses} ${paymentMethod === 'cash' ? activeClasses : inactiveClasses}`}
           onClick={() => setPaymentMethod('cash')}
         >
           Cash
         </button>
         <button
-          className={paymentMethod === 'card' ? 'active' : ''}
+          className={`${buttonBaseClasses} ${paymentMethod === 'card' ? activeClasses : inactiveClasses}`}
           onClick={() => setPaymentMethod('card')}
         >
           Credit/Debit Card
         </button>
       </div>
       {paymentMethod === 'card' && (
-        <div className="card-details">
+        <div className="space-y-4 mb-6">
           <input
             type="text"
             placeholder="Card Number"
             value={cardNumber}
             onChange={(e) => setCardNumber(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <input
-            type="text"
-            placeholder="Expiry Date (MM/YY)"
-            value={expiryDate}
-            onChange={(e) => setExpiryDate(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="CVV"
-            value={cvv}
-            onChange={(e) => setCvv(e.target.value)}
-          />
+          <div className="flex space-x-4">
+            <input
+              type="text"
+              placeholder="Expiry Date (MM/YY)"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="CVV"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value)}
+              className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
       )}
-      <button className="pay-now-btn" onClick={handlePayment}>
-        Pay Now
-      </button>
-      <button className="cancel-btn" onClick={onPaymentCancel}>
-        Cancel
-      </button>
+      <div className="space-y-3">
+        <button 
+          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300"
+          onClick={handlePayment}
+        >
+          Pay Now
+        </button>
+      </div>
     </div>
   );
 };

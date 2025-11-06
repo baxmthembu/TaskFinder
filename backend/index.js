@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const multer = require('multer');
 const {v2: cloudinary} = require('cloudinary');
 const {Pool} = require('pg');
@@ -23,6 +24,7 @@ const http = require('http')
 const socketIo = require('socket.io')
 const server = http.createServer(app)
 const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser');
 const { check, validationResult } = require('express-validator');
 const { error } = require('console');
 const connectedUsers = new Map();
@@ -46,6 +48,25 @@ const validateRoomName = (room) => {
   const parts = room.split('-');
   if (parts.length !== 2) return false;
   return parts.every(id => typeof id === 'string' && id.length > 0);
+};
+
+const updateFreelancerAvailability = async (freelancerId, isAvailable) => {
+  try {
+    await db('freelancers')
+      .where('id', freelancerId)
+      .update({ isavailable: isAvailable, status: isAvailable ? 'online' : 'offline' });
+
+    console.log(`Freelancer ${freelancerId} availability updated to ${isAvailable}`);
+
+    // Broadcast the change to all connected clients
+    io.emit('freelancer-status-changed', {
+      freelancerId,
+      isAvailable,
+    });
+    
+  } catch (error) {
+    console.error(`Error updating availability for freelancer ${freelancerId}:`, error);
+  }
 };
 
 
@@ -109,11 +130,6 @@ io.on('connection', (socket) => {
     io.to(roomName).emit("receiveLocation", { ...location, serviceRequest });
     console.log(`Location and service request sent to ${roomName}`);
 });
-
-  socket.on('updateAvailability', (availabilityData) => {
-    console.log('Availability update received:', availabilityData);
-    io.emit('receiveAvailability', availabilityData);
-  });
 
   //listen from the frontend so we can emit all the messages th"at were submitted by the people
   socket.on("send_message", (data) => {
@@ -267,43 +283,25 @@ socket.on('leave_room', (room) => {
   });
 
 
-socket.on('disconnect', async (reason) => {
-    console.log(`Disconnected: ${socket.id} (${reason})`);
-    
-    try {
-      const userData = connectedUsers.get(socket.id);
-      if (userData?.freelancerId) {
-        await db('freelancers')
-          .where('id', userData.freelancerId)
-          .update({ isavailable: false });
-        
-        io.emit('availability_changed', {
-          freelancerId: userData.freelancerId,
-          isAvailable: false,
-          reason: 'disconnect'
-        });
-      }
-    } catch (error) {
-      console.error('Disconnect error:', error);
-    } finally {
-      connectedUsers.delete(socket.id);
+  socket.on('freelancer-offline', async ({ freelancerId }) => {
+    if (freelancerId) {
+      console.log(`freelancer-offline event received for freelancer ID: ${freelancerId}`);
+      await updateFreelancerAvailability(freelancerId, false);
     }
   });
 
-  socket.on('update_availability', async ({ freelancerId, isAvailable }) => {
-    try {
-      await db('freelancers')
-        .where('id', freelancerId)
-        .update({ isavailable: isAvailable });
-      
-      // Broadcast to all clients
-      io.emit('availability_changed', {
-        freelancerId,
-        isAvailable
-      });
-    } catch (error) {
-      console.error('Error updating availability:', error);
+  socket.on('disconnect', async (reason) => {
+    console.log(`Socket ${socket.id} disconnected. Reason: ${reason}`);
+    // The freelancerId is attached to the socket object upon authentication/identification
+    if (socket.freelancerId) {
+      console.log(`Freelancer ${socket.freelancerId} disconnected.`);
+      await updateFreelancerAvailability(socket.freelancerId, false);
     }
+    connectedUsers.delete(socket.id);
+  });
+
+  socket.on('update_availability', ({ freelancerId, isAvailable }) => {
+    updateFreelancerAvailability(freelancerId, isAvailable);
   });
 
   // Store freelancer ID when they identify themselves
@@ -358,17 +356,13 @@ socket.on('disconnect', async (reason) => {
     io.emit('heartbeat', { timestamp: Date.now() });
   }, 30000); // Every 30 seconds
 
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    connectedUsers.delete(socket.id);
-  });
 
   socket.on('accept_task', async ({ room, task }) => {
     const clientId = room.split('-').find(id => id != socket.freelancerId);
     try {
-        const currentTask = await db('task').where({ id: clientId }).first();
+        const currentTask = await db('task').where({ task_id: task.id }).first();
         if (currentTask.status === 'pending') {
-            await db('task').where({ id: clientId }).update({ status: 'accepted', freelancer_id: socket.freelancerId });
+            await db('task').where({ task_id: task.id }).update({ status: 'accepted', freelancer_id: socket.freelancerId });
             io.to(room).emit('task_accepted', task);
             if(clientId) {
                 const freelancer = await db('freelancers').where({ id: socket.freelancerId }).first();
@@ -389,7 +383,7 @@ socket.on('disconnect', async (reason) => {
     io.to(room).emit('task_declined', { taskId });
     if(clientId) {
         const freelancer = await db('freelancers').where('id', socket.freelancerId).first();
-        const task = await db('task').where('id', taskId).first();
+        const task = await db('task').where('task_id', taskId).first();
         const message = `${freelancer.name} ${freelancer.surname} has declined your '${task.description}' task.`;
         io.to(`client-${clientId}`).emit('task_declined_notification', { message });
     }
@@ -398,9 +392,9 @@ socket.on('disconnect', async (reason) => {
   socket.on('finish_task', async ({ room, taskId }) => {
       const clientId = room.split('-').find(id => id != socket.freelancerId);
       try {
-          await db('task').where({ id: taskId }).update({ status: 'finished' });
+          await db('task').where({ task_id: taskId }).update({ status: 'finished' });
 
-          const task = await db('task').where({ id: taskId }).first();
+          const task = await db('task').where({ task_id: taskId }).first();
           const user = await db('user_info').where({ id: clientId }).first();
           const freelancer = await db('freelancers').where({ id: socket.freelancerId }).first();
 
@@ -427,21 +421,15 @@ socket.on('disconnect', async (reason) => {
 
 
 app.use(json());
-//app.use(_json())
 app.use(urlencoded({ extended: false }));
 app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ['GET', 'POST'],
+  origin: ["http://localhost:3000", 'https://baxmthembu.github.io'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
-  next();
-});
+app.use(cookieParser());
 app.use(express.static('public'));
-app.use(express.json())
+app.use(express.json());
 app.use('/chat-images', express.static('public/chat-images'));
 
 /*new*/
@@ -528,40 +516,19 @@ const loginLimiter = rateLimit({
 },
 });
 
-const userAuthenticateToken = (req,res,next) => {
-  const token = req.headers['userAuthorization'];
-
-  if(!token) return res.sendStatus(401)
-
-  jwt.verify(token,process.env.JWT_SECRET_KEY, (err,user) => {
-    if(err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  })
-}
-
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = req.cookies.token || (authHeader && authHeader.split(' ')[1]);
-  //console.log("Authorization header: ", token);
+  const token = req.cookies.token;
   
   if (!token) {
-    console.log('No token provided');
     return res.status(401).json({ error: 'Access token required' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
     if (err) {
-      console.error('JWT verification error: ', err);
-      
-      // Provide more specific error messages
       if (err.name === 'TokenExpiredError') {
         return res.status(401).json({ error: 'Token expired' });
-      } else if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({ error: 'Invalid token' });
-      } else {
-        return res.status(403).json({ error: 'Token verification failed' });
       }
+      return res.status(403).json({ error: 'Invalid token' });
     }
     
     req.user = user;
@@ -823,7 +790,7 @@ app.post('/login',[
       res.cookie('token', token, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'lax', // Explicitly set to 'lax' for development
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 4 * 60 * 60 * 1000 // 4 hours
       });
 
@@ -927,7 +894,7 @@ app.post('/workerlogin',[
       res.cookie('token', token, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'lax', // Explicitly set to 'lax' for development
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 4 * 60 * 60 * 1000 // 4 hours
       });
 
@@ -951,140 +918,38 @@ app.post('/workerlogin',[
   }
 });
 
-/*app.post('/workerlogout', async (req, res) => {
-  const { freelancerId } = req.body;
-
-  try {
-    // Convert freelancerId to a number to ensure it's properly formatted
-    const id = Number(freelancerId);
-
-    if (isNaN(id)) {
-      throw new Error('Invalid freelancer ID');
-    }
-
-    await db('freelancers')
-      .where('id', freelancerId)
-      .update({
-        status: 'offline',
-        isavailable: false
-      });
-    
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});
-
-
-
-app.post('/clientlogout', async (req, res) => {
-  const { clientId } = req.body;
-
-  try {
-    // Convert freelancerId to a number to ensure it's properly formatted
-    const id = Number(clientId);
-
-    if (isNaN(id)) {
-      throw new Error('Invalid freelancer ID');
-    }
-
-    await db('user_info')
-      .where('id', clientId)
-      .update({
-        status: 'offline',
-      });
-
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});*/
-
-// Backend index.js - Update logout endpoints
-app.post('/workerlogout', async (req, res) => {
-  const { freelancerId } = req.body;
-
-  try {
-    // Convert freelancerId to a number to ensure it's properly formatted
-    const id = Number(freelancerId);
-
-    if (isNaN(id)) {
-      return res.status(400).json({ msg: 'Invalid freelancer ID' });
-    }
-
-    await db('freelancers')
-      .where('id', freelancerId)
-      .update({
-        status: 'offline',
-        isavailable: false
-      });
-    
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});
-
-app.post('/clientlogout', async (req, res) => {
-  const { clientId } = req.body;
-
-  try {
-    // Convert clientId to a number to ensure it's properly formatted
-    const id = Number(clientId);
-
-    if (isNaN(id)) {
-      return res.status(400).json({ msg: 'Invalid client ID' });
-    }
-
-    await db('user_info')
-      .where('id', clientId)
-      .update({
-        status: 'offline',
-      });
-
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ msg: 'An error occurred' });
-  }
-});
-
-// Generic logout endpoint as fallback
 app.post('/logout', async (req, res) => {
   try {
-    // Try to get user info from token to determine role
     const token = req.cookies.token;
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      
-      // Try to update both tables (one will work based on actual user type)
-      await db('user_info')
-        .where('id', decoded.id)
-        .update({ status: 'offline' })
-        .catch(() => {}); // Ignore errors if user not in this table
-      
-      await db('freelancers')
-        .where('id', decoded.id)
-        .update({ 
-          status: 'offline',
-          isavailable: false 
-        })
-        .catch(() => {}); // Ignore errors if user not in this table
+
+      if (decoded.role === 'client') {
+        await db('user_info')
+          .where('id', decoded.id)
+          .update({ status: 'offline' });
+      } else if (decoded.role === 'freelancer') {
+        await db('freelancers')
+          .where('id', decoded.id)
+          .update({ status: 'offline', isavailable: false });
+        
+        // Notify all clients that this freelancer is now offline
+        io.emit('freelancer-status-changed', {
+          freelancerId: decoded.id,
+          isAvailable: false,
+        });
+      }
     }
-    
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
   } catch (error) {
-    console.error('Error:', error);
-    res.clearCookie('token');
-    res.json({ msg: 'Logout Successful' });
+    // Ignore errors if token is invalid or expired
+    console.error('Error during logout:', error.message);
+  } finally {
+    // Always clear the cookie
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    }).json({ msg: 'Logout Successful' });
   }
 });
 
@@ -1102,25 +967,13 @@ app.post('/available', async (req, res) => {
   const { freelancerId, isAvailable } = req.body;
 
   try {
-    // Convert freelancerId to a number to ensure it's properly formatted
     const id = Number(freelancerId);
 
     if (isNaN(id)) {
       throw new Error('Invalid freelancer ID');
     }
 
-    await db('freelancers')
-      .where('id', id)
-      .update({
-        isavailable: isAvailable
-      });
-
-    io.emit('availability_changed', { 
-      freelancerId: id, 
-      isAvailable 
-    });
-
-    /*broadcast({ id: id, isAvailable });*/
+    await updateFreelancerAvailability(id, isAvailable);
 
     res.json({ msg: 'Availability status updated' });
   } catch (error) {
@@ -1213,88 +1066,79 @@ app.put('/freelancers/:freelancerId/status', async (req, res) => {
 });
 
 app.post('/tasks', async (req, res) => {
-  const { id, task, time, completed,date_preference,custom_date,time_preference,specific_time,is_flexible,price_range } = req.body;
-  
-  try {
-    // Insert or update the task for this user
-    await db('task')
-      .insert({
-        id: id,
-        description: task,
-        estimated_duration: time,
-        completed: completed,
-        created_at: new Date(),
-        date_preference: date_preference,
-        custom_date: custom_date,
-        time_preference: time_preference,
-        specific_time: specific_time,
-        flexible: is_flexible,
-        price_per_hour: price_range
-      })
-      .onConflict('id') // If task already exists for this user
-      .merge(); // Update it instead
+    const { id, task, time, completed,date_preference,custom_date,time_preference,specific_time,is_flexible,price_range } = req.body;
 
-    console.log("Task submitted successfully");
-    return res.json({ success: true, msg: "Task submitted successfully" });
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ success: false, msg: "An error occurred" });
-  }
+    try {
+        await db('task')
+            .insert({
+                client_id: id, // Use client_id instead of id
+                description: task,
+                estimated_duration: time,
+                completed: completed,
+                created_at: new Date(),
+                date_preference: date_preference,
+                custom_date: custom_date,
+                time_preference: time_preference,
+                specific_time: specific_time,
+                flexible: is_flexible,
+                price_per_hour: price_range,
+                status: 'pending'
+            });
+
+        console.log("Task submitted successfully");
+        return res.json({ success: true, msg: "Task submitted successfully" });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ success: false, msg: "An error occurred" });
+    }
 });
 
 // Add this endpoint to fetch tasks
 app.get('/tasks/:clientId', async (req, res) => {
-  try {
-    const task = await db('task')
-      .where('id', req.params.clientId)
-      .first();
-    
-    if (task) {
-      return res.json(task);
+    try {
+        const tasks = await db('task')
+            .where('client_id', req.params.clientId)
+            .select('*');
+
+        if (tasks.length) {
+            return res.json(tasks);
+        }
+        return res.status(404).json({ msg: "No task found" });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ msg: "An error occurred" });
     }
-    return res.status(404).json({ msg: "No task found" });
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ msg: "An error occurred" });
-  }
 });
 
 app.get('/task-details/:clientId', async (req, res) => {
-  const { clientId } = req.params;
-  try {
-    // There is only one task description available per client due to schema.
-    const task = await db('task').where({ id: clientId }).first();
-    if (!task) {
-      return res.status(200).json([]); // Return empty array if no task
+    const { clientId } = req.params;
+    try {
+        const tasks = await db('task').where({ client_id: clientId });
+        if (!tasks.length) {
+            return res.status(200).json([]);
+        }
+
+        const taskDetails = await Promise.all(tasks.map(async (task) => {
+            const freelancer = task.freelancer_id ? await db('freelancers').where({ id: task.freelancer_id }).first() : null;
+            return { task, freelancer };
+        }));
+        
+        res.json(taskDetails);
+
+    } catch (error) {
+        console.error('Error fetching task details:', error);
+        res.status(500).json({ msg: "An error occurred" });
     }
-
-    const chats = await db('chat').where({ client_id: clientId });
-    if (!chats.length) {
-      // If there's a task but no chats, it's an unassigned task.
-      return res.json([{ task, freelancer: null }]);
-    }
-
-    const taskDetails = await Promise.all(chats.map(async (chat) => {
-      const freelancer = await db('freelancers').where({ id: chat.freelancer_id }).first();
-      return { task, freelancer };
-    }));
-    
-    res.json(taskDetails);
-
-  } catch (error) {
-    console.error('Error fetching task details:', error);
-    res.status(500).json({ msg: "An error occurred" });
-  }
 });
 
 app.post('/tasks/:taskId/complete', async (req, res) => {
   try {
     const { taskId } = req.params;
-    const task = await db('task').where({ id: taskId }).first();
+    const task = await db('task').where({ task_id: taskId }).first();
     if(task){
-      await db('task').where({ id: taskId }).update({ completed: true });
+      await db('task').where({ task_id: taskId }).update({ completed: true });
       // Emit to a room specific to the client
-      io.to(`client-${task.id}`).emit('task_completed', { taskId });
+      io.to(`client-${task.client_id}`).emit('task_completed', { taskId });
       res.json({ success: true, msg: "Task marked as complete" });
     } else {
       res.status(404).json({ success: false, msg: "Task not found" });
@@ -1309,9 +1153,9 @@ app.post('/tasks/:taskId/pay', async (req, res) => {
     const { taskId } = req.params;
     const { clientId } = req.body;
     try {
-        await db('task').where({ id: taskId }).update({ status: 'paid' });
+        await db('task').where({ task_id: taskId }).update({ status: 'paid' });
 
-        const task = await db('task').where({ id: taskId }).first();
+        const task = await db('task').where({ task_id: taskId }).first();
         const user = await db('user_info').where({ id: clientId }).first();
 
         await db('payment').insert({
@@ -1341,8 +1185,8 @@ app.get('/tasks/:clientId/in-progress-count', async (req, res) => {
     const { clientId } = req.params;
     try {
         const count = await db('task')
-            .where({ id: clientId, status: 'in-progress' })
-            .count('id as count')
+            .where({ client_id: clientId, status: 'in-progress' })
+            .count('task_id as count')
             .first();
         res.json(count);
     } catch (error) {
@@ -1761,45 +1605,41 @@ app.get('/api/user-image/:userId', async (req, res) => {
 
 
 // Validation endpoint to check if user is authenticated
-app.get('/validate', async (req, res) => {
+app.get('/validate', authenticateToken, async (req, res) => {
+  // If authenticateToken middleware succeeds, req.user is populated.
+  const { id, role } = req.user;
+  let user;
+
   try {
-    const token = req.cookies.token;
-    
-    if (!token) {
-      return res.json({ authenticated: false });
+    if (role === 'client') {
+      user = await db('user_info')
+        .select('id', 'username as name', 'role', 'status')
+        .where('id', id)
+        .first();
+    } else if (role === 'freelancer') {
+      user = await db('freelancers')
+        .select('id', 'name', 'role', 'status', 'isavailable')
+        .where('id', id)
+        .first();
     }
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    
-    // Get fresh user data from database
-    const user = await db('user_info')
-      .select('id', 'username', 'role', 'status')
-      .where('id', decoded.id)
-      .first();
-      
+
     if (!user) {
-      res.clearCookie('token');
-      return res.json({ authenticated: false });
+      // This case should be rare if token is valid but user is not in DB
+      return res.status(404).json({ authenticated: false });
     }
-    
+
     res.json({
       authenticated: true,
-      user: {
-        id: user.id,
-        name: user.username,
-        role: user.role,
-        status: user.status
-      }
+      user: user
     });
   } catch (error) {
     console.error('Validation error:', error);
-    res.clearCookie('token');
-    res.json({ authenticated: false });
+    res.status(500).json({ authenticated: false, error: 'Internal server error' });
   }
 });
 
 
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 3001
 server.listen(port, () => {
   console.log(`Server listening on port ${port}`)
 })

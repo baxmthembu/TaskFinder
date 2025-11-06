@@ -2085,14 +2085,14 @@ useEffect(() => {
   };
 
   const handleAccept = () => {
-    if (task && task.id) {
+    if (task && task.task_id) {
       onAcceptTask(task, getPartnerInfo(selectedConversation).name, room);
     }
   };
 
   const handleDecline = () => {
-    if (task && task.id) {
-      onDeclineTask(task.id, room);
+    if (task && task.task_id) {
+      onDeclineTask(task.task_id, room);
     }
   };
 

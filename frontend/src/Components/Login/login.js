@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
 import ReCAPTCHA from 'react-google-recaptcha';
 import { ToastContainer} from 'react-toastify';
@@ -10,7 +10,7 @@ import logo from '../Images/taskaroo.svg'
 const Login = () => {
   const [captchaValue, setCaptchaValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const {login} = useAuth()
+  const {login, user} = useAuth()
   const [ , setUserLocation] = useState({ latitude: null, longitude: null });
   const [formData, setFormData] = useState({
     username: '',
@@ -55,9 +55,6 @@ const ProceedLogin = async (e) => {
           });
           
           // Redirect based on user role
-          setTimeout(() => {
-            window.location.hash = '#/service_form';
-          }, 100);
         } else {
           toast.error(result.error || 'Log In Error', {
             position: toast.POSITION.TOP_CENTER
@@ -95,6 +92,17 @@ const ProceedLogin = async (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  useEffect(() => {
+    if (user) {
+      // If user is already logged in, redirect them
+      window.location.hash = '#/service_form';
+    }
+  }, [user]);
+
+  if (user) {
+    return <Navigate to="/service_form" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">

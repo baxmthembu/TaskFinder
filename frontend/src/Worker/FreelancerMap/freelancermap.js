@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useMemo, useContext } from "react";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
 import { useNavigate } from "react-router-dom";
-import io from 'socket.io-client';
 import Axios from "axios";
 import { scopedCssBaselineClasses } from "@mui/material";
 import './freelancermap.css';
 import { useAuth } from "../../provider/Authprovider";
-
-//const socket = io.connect('backend/index.js')
-//const socket = io.connect("https://taskfinder.onrender.com")
-const socket = io.connect('http://localhost:3001');
+import socket from "../../socket";
 
 const FreelancerMap = ({ initialLocation, data, onDecision}) => {
   const defaultCenter = { lat: -29.7400389, lng: 30.9818962 };
@@ -158,20 +154,24 @@ const handleDecision = (decision) => {
     }
     
     console.log("Emitting decision for room:", room);
-    socket.emit("freelancer_decision", {
-        room,
-        decision,
-        clientId,
-        workerId,
-    });
+    if (selectedMarker && selectedMarker.serviceRequest) {
+        socket.emit("freelancer_decision", {
+            room,
+            decision,
+            clientId,
+            workerId,
+        });
 
-    if (decision === 'accepted') {
-        console.log("Joining room:", room);
-        socket.emit("join_room", { room });
-        onDecision(decision, selectedMarker);
+        if (decision === 'accepted') {
+            console.log("Joining room:", room);
+            socket.emit("join_room", { room });
+            onDecision(decision, selectedMarker);
         } else {
-        setClientLocation(null);
-        setSelectedMarker(null);
+            setClientLocation(null);
+            setSelectedMarker(null);
+        }
+    } else {
+        console.error("No service request found for the selected marker.");
     }
 };
 

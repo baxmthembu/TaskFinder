@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StarRating from '../SearchBar/starrating'; // Assuming you have a StarRating component
 import './home.css';
-import io from 'socket.io-client';
+import socket from '../../socket';
 import TopButton from '../BackToTop/top';
 import logo from '../Images/taskaroo.svg';
 import MapComponent from '../MapComponent/testmap';
@@ -15,7 +15,6 @@ import History from '../History/History';
 import PayPal from '../Paypal/paypal';
 
 //const socket = io.connect('https://taskfinder.onrender.com');
-const socket = io('http://localhost:3001');
 
 const Plumber = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -42,22 +41,26 @@ const Plumber = () => {
     
     useEffect(() => {
         const fetchTaskDetails = async () => {
-            try {
-                const clientId = localStorage.getItem('id');
-                const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
-                setTaskDetails(response.data);
-            } catch (error) {
-                console.error('Error fetching task details:', error);
+            const clientId = localStorage.getItem('id');
+            if (clientId) {
+                try {
+                    const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                    setTaskDetails(response.data);
+                } catch (error) {
+                    console.error('Error fetching task details:', error);
+                }
             }
         };
 
         const fetchInProgressCount = async () => {
-            try {
-                const clientId = localStorage.getItem('id');
-                const response = await Axios.get(`http://localhost:3001/tasks/${clientId}/in-progress-count`);
-                setInProgressCount(response.data.count);
-            } catch (error) {
-                console.error('Error fetching in-progress task count:', error);
+            const clientId = localStorage.getItem('id');
+            if (clientId) {
+                try {
+                    const response = await Axios.get(`http://localhost:3001/tasks/${clientId}/in-progress-count`);
+                    setInProgressCount(response.data.count);
+                } catch (error) {
+                    console.error('Error fetching in-progress task count:', error);
+                }
             }
         };
 
@@ -108,36 +111,41 @@ const Plumber = () => {
 
         locationData();
 
-        const handler = (availabilityData) => {
-            setWorkersData(prev =>
-                prev.map(worker =>
-                    worker.id === availabilityData.freelancerId
-                    ? { ...worker, isAvailable: availabilityData.isAvailable }
-                    : worker
+        const handleAvailabilityChange = ({ freelancerId, isAvailable }) => {
+            setWorkersData(prevWorkers =>
+                prevWorkers.map(worker =>
+                    worker.id === freelancerId
+                        ? { ...worker, isavailable: isAvailable, status: isAvailable ? 'online' : 'offline' }
+                        : worker
                 )
             );
         };
 
-        socket.on('receiveAvailability', handler);
-      
+        socket.on('freelancer-status-changed', handleAvailabilityChange);
+
         return () => {
-            socket.off('receiveAvailability', handler);
+            socket.off('freelancer-status-changed', handleAvailabilityChange);
         };
     }, []);
 
     useEffect(() => {
         const clientId = localStorage.getItem('id');
-        socket.emit('join_room', `client-${clientId}`);
+        if (clientId) {
+            socket.emit('join_room', `client-${clientId}`);
+        }
     
         const handleTaskCompleted = (data) => {
             setNotificationCount(prev => prev + 1);
             toast.success(data.message);
             const fetchTaskDetails = async () => {
-                try {
-                    const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
-                    setTaskDetails(response.data);
-                } catch (error) {
-                    console.error('Error refetching task details:', error);
+                const clientId = localStorage.getItem('id');
+                if (clientId) {
+                    try {
+                        const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                        setTaskDetails(response.data);
+                    } catch (error) {
+                        console.error('Error refetching task details:', error);
+                    }
                 }
             };
             fetchTaskDetails();
@@ -165,7 +173,7 @@ const Plumber = () => {
         socket.on('update_task_counter', handleUpdateTaskCounter);
         socket.on('task_updated', (updatedTask) => {
             setTaskDetails(prevDetails => prevDetails.map(details =>
-                details.task.id === updatedTask.id ? { ...details, task: updatedTask } : details
+                details.task.task_id === updatedTask.task_id ? { ...details, task: updatedTask } : details
             ));
         });
     
@@ -174,7 +182,9 @@ const Plumber = () => {
             socket.off('task_accepted_notification', handleTaskAccepted);
             socket.off('task_declined_notification', handleTaskDeclined);
             socket.off('update_task_counter', handleUpdateTaskCounter);
-            socket.emit('leave_room', `client-${clientId}`);
+            if (clientId) {
+                socket.emit('leave_room', `client-${clientId}`);
+            }
         };
     }, []);
 
@@ -333,17 +343,13 @@ const Plumber = () => {
             const clientId = localStorage.getItem('id');
             await Axios.post(`http://localhost:3001/tasks/${taskForPayment.task.id}/pay`, { clientId });
             
-            // Optimistically update UI
+            // Optimistically update UI by removing the task from the active list.
             setTaskDetails(prevDetails =>
-                prevDetails.map(d =>
-                    d.task.id === taskForPayment.task.id
-                    ? { ...d, task: { ...d.task, status: 'paid' } }
-                    : d
-                )
+                prevDetails.filter(d => d.task.task_id !== taskForPayment.task.task_id)
             );
-            
+
             setTaskForPayment(null); // Close modal
-            toast.success('Payment successful!');
+            toast.success('Payment successful! Task moved to history.');
         } catch (error) {
             console.error('Error processing payment:', error);
             toast.error('Payment failed.');
@@ -420,30 +426,39 @@ const Plumber = () => {
 
     const handleSendLocation = async (workerId) => {
         const clientId = localStorage.getItem('id');
-        const client = clientsData.find(worker => worker.id === clientId);
-
+        const client = clientsData.find(c => String(c.id) === clientId);
+    
         try {
             const response = await Axios.get(`http://localhost:3001/tasks/${clientId}`);
-            const taskData = response.data;
-            if (client && taskData) {
+            const tasks = response.data; // Assuming the endpoint returns an array of tasks
+            
+            // Find the most recent task that is still pending
+            const latestTask = tasks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                                  .find(t => t.status === 'pending');
+    
+            if (client && latestTask) {
                 const room = [clientId, workerId].sort().join('-');
                 socket.emit("join_room", { room });
-
-            const locationPayload = {
-                location: {
-                    latitude: client.latitude,
-                    longitude: client.longitude,
-                    name: client.name,
-                    surname: client.surname,
-                    id: clientId
-                },
-                freelancerId: workerId,
-                serviceRequest: taskData
-            };
-
-            socket.emit('sendLocation', locationPayload);
-            setResponseStatus(prev => ({ ...prev, [workerId]: 'pending' }));
-            
+    
+                const locationPayload = {
+                    location: {
+                        latitude: client.latitude,
+                        longitude: client.longitude,
+                        name: client.name,
+                        surname: client.surname,
+                        id: clientId
+                    },
+                    freelancerId: workerId,
+                    serviceRequest: latestTask // Send the specific task
+                };
+    
+                socket.emit('sendLocation', locationPayload);
+                setResponseStatus(prev => ({ ...prev, [workerId]: 'pending' }));
+                
+            } else {
+                // Handle case where no pending task is found
+                console.error('No pending tasks found for this client.');
+                toast.info('You have no pending tasks to connect with.');
             }
         } catch(error) {
             console.error('Error fetching task: ', error);
@@ -465,12 +480,13 @@ const Plumber = () => {
     return (
         <div className="min-h-screen bg-white-50 pb-24">
             {/* Header */}
-            <header className="bg-transparent py-4 px-6 flex items-center justify-between">
+            <header className="bg-transparent py-4 px-6 flex items-center">
                 <div className="request-form-logo ml-10 mt-9">
                     <img src={logo} alt='logo' className="max-w-[25rem]" />
                 </div>
-                <nav className="flex items-center space-x-4">
-                    <ul className="flex items-center space-x-4">
+                <div className="flex-grow"></div>
+                <nav className="flex items-center space-x-4 mr-16">
+                    <ul className="flex items-center space-x-8">
                         <li>
                             <div className="relative">
                                 <button
@@ -589,7 +605,7 @@ const Plumber = () => {
                                 <div key={value.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 hover:-translate-y-1">
                                     <div className="p-5 text-center">
                                         <img 
-                                            src={'http://localhost:3001/images/' + value.images} 
+                                            src={'http://localhost:3001/images/' + value.images}
                                             alt='avatar' 
                                             className="w-32 h-32 mx-auto mb-3 rounded-full transition-transform duration-200"
                                         />
@@ -680,8 +696,8 @@ const Plumber = () => {
             ))}
 
             {taskForPayment && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 rounded-md">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full">
                         <PayPal
                             amount={taskForPayment.task.price_per_hour}
                             onPaymentSuccess={handlePaymentSuccess}
