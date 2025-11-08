@@ -485,7 +485,7 @@ const Plumber = () => {
                     <img src={logo} alt='logo' className="max-w-[25rem]" />
                 </div>
                 <div className="flex-grow"></div>
-                <nav className="flex items-center space-x-4 mr-16">
+                <nav className="flex items-center space-x-4 mr-20 bg-white rounded-full shadow-lg px-6 py-2">
                     <ul className="flex items-center space-x-8">
                         <li>
                             <div className="relative">
@@ -494,7 +494,7 @@ const Plumber = () => {
                                         setIsDropdownOpen(!isDropdownOpen);
                                         setNotificationCount(0);
                                     }}
-                                    className="relative px-4 py-2 bg-gray-200 rounded-md"
+                                    className="relative px-4 py-2 bg-transparent text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                                 >
                                     Task Status
                                     {inProgressCount > 0 && (
@@ -541,7 +541,7 @@ const Plumber = () => {
                         <li>
                             <History userType="client" userId={user.id} isOpen={isHistoryOpen} setIsOpen={setIsHistoryOpen} />
                         </li>
-                        <li>
+                        <li className='flex items-center'>
                             <Logout />
                         </li>
                     </ul>
@@ -561,23 +561,6 @@ const Plumber = () => {
                 />
             </div>
 
-            {/* Sorting */}
-            <div className='absolute top-15 right-5 z-15 bg-white rounded-xl shadow-lg border border-gray-100 p-4'>
-                <div className="flex items-center space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort By:</span>
-                    <select 
-                        value={sortBy} 
-                        onChange={handleSortChange} 
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white cursor-pointer"
-                    >
-                        <option value='starRating'>Star Rating (High to Low)</option>
-                        <option value='name'>Name (A-Z)</option>
-                    </select>
-                </div>
-            </div>
 
             {/* Main Content */}
             <div className="flex h-[calc(100vh-180px)] mt-16 w-full relative z-10 min-h-0 overflow-hidden">
@@ -599,6 +582,18 @@ const Plumber = () => {
 
                 {/* Cards Container */}
                 <div className="flex-1 min-w-[500px] h-full overflow-y-auto p-5 bg-gray-50 relative z-20">
+                    <div className="flex justify-end mb-4">
+                        <div className="flex items-center space-x-3">
+                            <select
+                                value={sortBy}
+                                onChange={handleSortChange}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white cursor-pointer"
+                            >
+                                <option value='starRating'>Star Rating (High to Low)</option>
+                                <option value='name'>Name (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 py-5">
                         {currentItems.length > 0 ? (
                             currentItems.map((value) => (

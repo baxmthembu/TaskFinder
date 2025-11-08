@@ -26,7 +26,7 @@ const History = ({ userType, userId, isOpen, setIsOpen }) => {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="bg-blue-500 text-white rounded-md px-4 py-2"
+                className="bg-transparent text-gray-600 hover:bg-gray-100 rounded-md px-4 py-2 transition-colors"
             >
                 History
             </button>
@@ -40,7 +40,7 @@ const History = ({ userType, userId, isOpen, setIsOpen }) => {
                                 {userType === 'client' && <p><strong>Freelancer:</strong> {item.freelancer_name}</p>}
                                 {userType === 'freelancer' && <p><strong>Client:</strong> {item.user_name}</p>}
                                 <p><strong>Date:</strong> {new Date(item.date_finished).toLocaleDateString()}</p>
-                                <p><strong>Amount:</strong> ${item.amount}</p>
+                                <p><strong>Amount:</strong> R{item.amount}</p>
                             </div>
                         ))
                     ) : (

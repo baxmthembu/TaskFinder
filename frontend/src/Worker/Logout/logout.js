@@ -68,10 +68,10 @@ const Logout = () => {
     };
 
     return (
-      <div className="absolute top-12 right-20 z-50">
+      <div className="">
         <button 
             onClick={handleLogout}
-            className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all shadow-sm hover:shadow-md"
+            className="bg-transparent text-gray-600 hover:bg-gray-100 rounded-md px-4 py-2 transition-colors"
         >
             <div className="flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

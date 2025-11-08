@@ -104,8 +104,14 @@ const TaskStatus = ({
         </div>
       )}
       {showPayPal && selectedTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={handlePaymentCancel}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-start">
               <h2 className="text-xl font-semibold text-gray-800">Complete Payment</h2>
               <button onClick={handlePaymentCancel} className="text-gray-500 hover:text-gray-800">

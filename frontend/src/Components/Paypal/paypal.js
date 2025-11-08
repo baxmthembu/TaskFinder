@@ -24,6 +24,7 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
 
   return (
     <div className="p-4 bg-gray-50 rounded-b-lg w-full">
+      <p className="text-2xl font-bold text-center text-gray-900 my-4">Pay R{amount}</p>
       <div className="flex justify-center space-x-2 sm:space-x-4 mb-6">
         <button
           className={`${buttonBaseClasses} ${paymentMethod === 'cash' ? activeClasses : inactiveClasses}`}
@@ -71,6 +72,12 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
           onClick={handlePayment}
         >
           Pay Now
+        </button>
+        <button
+          className="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300"
+          onClick={onPaymentCancel}
+        >
+          Cancel
         </button>
       </div>
     </div>

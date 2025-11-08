@@ -209,17 +209,17 @@ const ServiceRequestForm = () => {
               <input
                 type="range"
                 name="priceRange"
-                min="10"
-                max="150"
-                step="5"
+                min="50"
+                max="5000"
+                step="15"
                 value={formData.priceRange}
                 onChange={handleChange}
                 required
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
               />
               <div className="flex justify-between items-center mt-3">
-                <span className="text-xl font-bold text-indigo-600">R{formData.priceRange}<span className="text-sm font-medium text-slate-500">/hr</span></span>
-                <small className="text-xs text-slate-500">Avg. rate: R56.50/hr</small>
+                <span className="text-xl font-bold text-indigo-600">R{formData.priceRange}<span className="text-sm font-medium text-slate-500"></span></span>
+                <small className="text-xs text-slate-500">Avg. rate: R56.50</small>
               </div>
             </div>
           </div>
