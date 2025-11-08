@@ -1,5 +1,6 @@
 import { toast } from 'react-toastify';
 import { useEffect, useState, useMemo, useContext } from 'react';
+import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import StarRating from '../SearchBar/starrating'; // Assuming you have a StarRating component
 import './home.css';
@@ -13,6 +14,8 @@ import ChatWidget from '../../ChatWidget';
 import { useAuth } from '../../provider/Authprovider';
 import History from '../History/History';
 import PayPal from '../Paypal/paypal';
+import { Tooltip } from 'react-tooltip'
+import 'react-tooltip/dist/react-tooltip.css'
 
 //const socket = io.connect('https://taskfinder.onrender.com');
 
@@ -495,8 +498,11 @@ const Plumber = () => {
                                         setNotificationCount(0);
                                     }}
                                     className="relative px-4 py-2 bg-transparent text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    data-tooltip-id="task-status-tooltip"
+                                    data-tooltip-content="Task Status"
                                 >
-                                    Task Status
+                                    <ClipboardDocumentCheckIcon className="h-6 w-6" />
+                                    <span className="sr-only">Task Status</span>
                                     {inProgressCount > 0 && (
                                         <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
                                             {inProgressCount}
@@ -701,6 +707,7 @@ const Plumber = () => {
                     </div>
                 </div>
             )}
+            <Tooltip id="task-status-tooltip" />
         </div>
     );
 };

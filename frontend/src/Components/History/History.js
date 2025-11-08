@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ClockIcon } from '@heroicons/react/24/outline';
+import { Tooltip } from 'react-tooltip'
 import Axios from 'axios';
 import './History.css';
 
@@ -27,8 +29,11 @@ const History = ({ userType, userId, isOpen, setIsOpen }) => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="bg-transparent text-gray-600 hover:bg-gray-100 rounded-md px-4 py-2 transition-colors"
+                data-tooltip-id="history-tooltip"
+                data-tooltip-content="History"
             >
-                History
+                <ClockIcon className="h-6 w-6" />
+                <span className="sr-only">History</span>
             </button>
             {isOpen && (
                 <div className="absolute top-12 right-0 bg-white shadow-md rounded-md p-4 w-64 z-50">
@@ -48,6 +53,7 @@ const History = ({ userType, userId, isOpen, setIsOpen }) => {
                     )}
                 </div>
             )}
+            <Tooltip id="history-tooltip" />
         </div>
     );
 };
