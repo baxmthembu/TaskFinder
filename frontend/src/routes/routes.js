@@ -1,6 +1,6 @@
 /*import { RouterProvider, createBrowserRouter, createHashRouter } from "react-router-dom";
 import { useContext, useNavigate, useState, useEffect, Children } from "react";
-import { useAuth } from "./../provider/Authprovider";
+import { useAuth } from "./../provider/authProvider";
 import { ProtectedRoute } from "./ProtectedRoutes";
 //import SearchBar from "../Components/SearchBar/searchbar";
 import Home from "../Components/Home/home";

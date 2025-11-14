@@ -1,7 +1,7 @@
 /*import React, {useContext} from 'react';
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 import './logout.css'
 import Freelancers from '../freelancerDelete/freelancerDelete';
 
