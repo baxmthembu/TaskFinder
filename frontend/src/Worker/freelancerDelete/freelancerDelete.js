@@ -1,4 +1,3 @@
-import React from 'react';
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import styles from './freelancerDelete.module.css'
