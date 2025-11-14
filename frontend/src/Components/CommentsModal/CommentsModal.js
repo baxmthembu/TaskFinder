@@ -31,7 +31,7 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
         } finally {
             setLoading(false);
         }
-    }, [freelancerId, page]);
+    }, [freelancerId, page, limit]);
     
     if (!isOpen) return null;
 

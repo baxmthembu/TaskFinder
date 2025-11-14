@@ -28,23 +28,59 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
   const [unreadCounts, setUnreadCounts] = useState({});
   const [totalUnread, setTotalUnread] = useState(0);
 
-  // Add this function to fetch initial unread counts
-const fetchUnreadCounts = useCallback(async () => {
-  try {
-    //const response = await fetch(`http://localhost:3001/chats/${currentUser.id}/unread-counts`);
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}/unread-counts`);
-    if (response.ok) {
-      const data = await response.json();
-      setUnreadCounts(data);
+  const handleRefresh = useCallback(async () => {
+    try {
+      setIsLoading(true);
 
-      // Calculate total unread count
-      const total = Object.values(data).reduce((sum, count) => sum + count, 0);
-      setTotalUnread(total);
+      // Refresh conversations
+      //const convResponse = await fetch(`http://localhost:3001/chats/${currentUser.id}`);
+      const convResponse = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}`);
+      const convData = await convResponse.json();
+      setConversations(convData);
+
+      // Refresh messages if a conversation is selected
+      if (selectedConversation) {
+        /*const msgResponse = await fetch(
+          `http://localhost:3001/chats/${selectedConversation.room_id}/messages`
+        );*/
+        const msgResponse = await fetch(
+          `${process.env.REACT_APP_API_URL}/chats/${selectedConversation.room_id}/messages`
+        );
+        const msgData = await msgResponse.json();
+        setMessages(msgData.map(msg => ({
+          ...msg,
+          sender: String(msg.sender || msg.sender_id),
+          room: selectedConversation.room_id,
+          timestamp: msg.timestamp || msg.created_at,
+          // Ensure image_url is properly set
+          //image_url: msg.image_path ? `http://localhost:3001/chat-images/${msg.image_path}` : null
+          image_url: msg.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${msg.image_path}` : null
+        })));
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching unread counts:', error);
-  }
-}, [currentUser.id]);
+  }, [currentUser.id, selectedConversation]);
+
+  // Add this function to fetch initial unread counts
+  const fetchUnreadCounts = useCallback(async () => {
+    try {
+      //const response = await fetch(`http://localhost:3001/chats/${currentUser.id}/unread-counts`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}/unread-counts`);
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCounts(data);
+
+        // Calculate total unread count
+        const total = Object.values(data).reduce((sum, count) => sum + count, 0);
+        setTotalUnread(total);
+      }
+    } catch (error) {
+      console.error('Error fetching unread counts:', error);
+    }
+  }, [currentUser.id]);
 
 const fetchMessages = async (roomId) => {
     try {
@@ -383,41 +419,6 @@ useEffect(() => {
     }
   };
 
-  const handleRefresh = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      // Refresh conversations
-      //const convResponse = await fetch(`http://localhost:3001/chats/${currentUser.id}`);
-      const convResponse = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}`);
-      const convData = await convResponse.json();
-      setConversations(convData);
-
-      // Refresh messages if a conversation is selected
-      if (selectedConversation) {
-        /*const msgResponse = await fetch(
-          `http://localhost:3001/chats/${selectedConversation.room_id}/messages`
-        );*/
-        const msgResponse = await fetch(
-          `${process.env.REACT_APP_API_URL}/chats/${selectedConversation.room_id}/messages`
-        );
-        const msgData = await msgResponse.json();
-        setMessages(msgData.map(msg => ({
-          ...msg,
-          sender: String(msg.sender || msg.sender_id),
-          room: selectedConversation.room_id,
-          timestamp: msg.timestamp || msg.created_at,
-          // Ensure image_url is properly set
-          //image_url: msg.image_path ? `http://localhost:3001/chat-images/${msg.image_path}` : null
-          image_url: msg.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${msg.image_path}` : null
-        })));
-      }
-    } catch (error) {
-      console.error('Error refreshing:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentUser.id, selectedConversation]);
 
   const handleFileChange = (e) => {
   const selectedFile = e.target.files[0];
