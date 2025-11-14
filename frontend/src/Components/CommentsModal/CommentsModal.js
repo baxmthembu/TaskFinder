@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import StarRating from '../StarRating/StarRating';
 import Axios from 'axios';
 
@@ -13,9 +13,9 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
         if (isOpen && freelancerId) {
             fetchComments();
         }
-    }, [isOpen, freelancerId, page]);
+    }, [isOpen, freelancerId, page, fetchComments]);
 
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setLoading(true);
         try {
             /*const response = await Axios.get(`http://localhost:3001/freelancers/${freelancerId}/comments`, {
@@ -31,7 +31,7 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [freelancerId, page]);
     
     if (!isOpen) return null;
 

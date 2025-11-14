@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaSync, FaPaperclip, FaMapMarkerAlt, FaTimes, FaCamera, FaPlus } from 'react-icons/fa';
 import './ChatWidget.css';
 import io from 'socket.io-client';
@@ -29,14 +29,14 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
   const [totalUnread, setTotalUnread] = useState(0);
 
   // Add this function to fetch initial unread counts
-const fetchUnreadCounts = async () => {
+const fetchUnreadCounts = useCallback(async () => {
   try {
     //const response = await fetch(`http://localhost:3001/chats/${currentUser.id}/unread-counts`);
     const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}/unread-counts`);
     if (response.ok) {
       const data = await response.json();
       setUnreadCounts(data);
-      
+
       // Calculate total unread count
       const total = Object.values(data).reduce((sum, count) => sum + count, 0);
       setTotalUnread(total);
@@ -44,7 +44,7 @@ const fetchUnreadCounts = async () => {
   } catch (error) {
     console.error('Error fetching unread counts:', error);
   }
-};
+}, [currentUser.id]);
 
 const fetchMessages = async (roomId) => {
     try {
@@ -383,16 +383,16 @@ useEffect(() => {
     }
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Refresh conversations
       //const convResponse = await fetch(`http://localhost:3001/chats/${currentUser.id}`);
       const convResponse = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}`);
       const convData = await convResponse.json();
       setConversations(convData);
-      
+
       // Refresh messages if a conversation is selected
       if (selectedConversation) {
         /*const msgResponse = await fetch(
@@ -417,7 +417,7 @@ useEffect(() => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentUser.id, selectedConversation]);
 
   const handleFileChange = (e) => {
   const selectedFile = e.target.files[0];
