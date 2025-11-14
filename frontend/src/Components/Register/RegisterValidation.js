@@ -1,7 +1,7 @@
 function Validation(values) {
     let error = {}
-    const email_pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const password_pattern =  /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/
+    /*const email_pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const password_pattern =  /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/*/
     /*/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{8,}$/*/
 
 

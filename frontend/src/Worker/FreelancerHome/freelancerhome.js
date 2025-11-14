@@ -1,32 +1,28 @@
 import Axios from 'axios';
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './freelancerhome.css';
 import FreelancerMap from '../FreelancerMap/freelancermap';
 import socket from '../../socket';
-import Sidebar from '../Freelancer_Sidebar/freelancer_sidebar';
 import { useAuth } from '../../provider/Authprovider';
 import logo from '../../Components/Images/taskaroo.svg'
 import Logout from '../Logout/logout';
 import ChatWidget from '../../ChatWidget';
 import TaskStatus from '../../Components/TaskStatus/TaskStatus';
 import History from '../../Components/History/History';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
-//const socket = io('https://taskfinder.onrender.com')
 
 
 const FreelancerHome = () => {
     const {user} = useAuth()
     const [isAvailable, setIsAvailable] = useState(false); // Default to false initially
-    const [clientLocation,setClientLocation] = useState(null)
-    const [clientsData, setClientsData] = useState([])
-    const [loading, setLoading] = useState(true);
-    const [activeChat, setActiveChat] = useState(null);
+    const [clientsData] = useState([])
     const [activeChats, setActiveChats] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [currentTask, setCurrentTask] = useState(null);
-    const [showHistory, setShowHistory] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [newTasksCount, setNewTasksCount] = useState(0);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  
      useEffect(() => {
          socket.on('task_accepted', (task) => {
@@ -93,7 +89,8 @@ const FreelancerHome = () => {
       // Fetch initial availability status
       const fetchAvailability = async () => {
         try {
-          const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
+          //const response = await Axios.get(`http://localhost:3001/freelancer/${user.id}/availability`);
+          const response = await Axios.get(`${process.env.REACT_APP_API_URL}/freelancer/${user.id}/availability`);
           if (response.status === 200) {
             setIsAvailable(response.data.isAvailable);
           } else {
@@ -150,7 +147,8 @@ const FreelancerHome = () => {
         const handleRefreshChats = async ({ userId }) => {
             if (userId === user.id) {
                 try {
-                    const response = await fetch(`http://localhost:3001/chats/${userId}`);
+                    //const response = await fetch(`http://localhost:3001/chats/${userId}`);
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${userId}`);
                     const data = await response.json();
                 
                     // Filter to only chats where current user is the freelancer
@@ -249,15 +247,16 @@ const FreelancerHome = () => {
         }
     };
 
-    const handleCompleteTask = async (taskId) => {
+    /*const handleCompleteTask = async (taskId) => {
         try {
-            await Axios.post(`http://localhost:3001/tasks/${taskId}/complete`);
+            //await Axios.post(`http://localhost:3001/tasks/${taskId}/complete`);
+            await Axios.post(`${process.env.REACT_APP_API_URL}/tasks/${taskId}/complete`);
             alert('Task marked as complete!');
         } catch (error) {
             console.error('Error completing task:', error);
             alert('Failed to mark task as complete.');
         }
-    };
+    };*/
 
     const handleAcceptTask = (task, clientName, room) => {
         const newTask = {
@@ -315,60 +314,33 @@ const FreelancerHome = () => {
 
     return (
       <>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100">
-  {/* Enhanced Header */}
-  {/*<header className="bg-white/95 backdrop-blur-lg shadow-sm border-b border-slate-200/60 py-8">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-4">
-        <div className="hidden md:block">
-          <h1 className="text-3xl font-bold text-slate-800">Freelancer Dashboard</h1>
-          <p className="text-slate-600 text-base">Manage your availability and client requests</p>
-        </div>
-      </div>
-      
-      <div className="flex items-center space-x-6">
-        <div className="hidden sm:flex items-center space-x-3 bg-slate-100/80 rounded-full px-4 py-3">
-          <div className={`w-4 h-4 rounded-full animate-pulse ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <span className="text-base font-medium text-slate-700">
-            {isAvailable ? 'Online & Available' : 'Offline'}
-          </span>
-        </div>
-        
-        <div className="freelancerhome-logout">
-          <Logout />
-        </div>
-      </div>
-    </div>
+        <div className="min-h-screen bg-teal-50 pb-24 overflow-x-hidden">
+{/* Header positioned exactly like home.js with centered title */}
+<header className="bg-transparent py-4 px-6 flex items-center">
+  {/* Logo with Branding */}
+  <div className="logo ml-10 mt-6">
+    <img src={logo} alt="Logo" className="max-w-[20rem] drop-shadow-md" />
   </div>
-</header>*/}
-<header className="bg-white/95 backdrop-blur-lg shadow-sm border-b border-slate-200/60 py-6 relative z-30">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="flex items-center justify-between">
-      {/* Logo with Branding */}
-      <div className="flex items-center space-x-4">
-        <div className="request-form-logo">
-          <img src={logo} alt='logo' className="h-24 w-auto object-contain" />
-        </div>
-        <div className="hidden md:block">
-          <h1 className="text-2xl font-bold text-slate-800">Freelancer Dashboard</h1>
-          <p className="text-slate-600 text-sm">Manage your availability and client requests</p>
-        </div>
-      </div>
-      
-      {/* Status & Logout Grouped Together */}
-      <div className="flex items-center bg-slate-100/80 rounded-full pl-4 pr-2 py-2 shadow-sm">
-        {/* Status Indicator */}
-        <div className="hidden sm:flex items-center space-x-3">
+  
+  {/* Centered Title */}
+  <div className="flex-1 flex justify-center items-center">
+    <h1 className="text-3xl font-bold text-teal-700 text-slate-800 text-center">
+      Freelancer Dashboard
+    </h1>
+  </div>
+  
+  <nav className="hidden md:flex items-center space-x-4 mr-20 bg-white rounded-full shadow-lg px-6 py-2">
+    <ul className="flex items-center space-x-8">
+      {/* Status Indicator */}
+      <li>
+        <div className="flex items-center space-x-3">
           <div className={`w-4 h-4 rounded-full animate-pulse ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <span className="text-base font-medium text-slate-700">
             {isAvailable ? 'Online & Available' : 'Offline'}
           </span>
         </div>
-        
-        {/* Vertical Divider */}
-        <div className="h-6 w-px bg-slate-300 mx-3"></div>
-
+      </li>
+      <li>
         <TaskStatus
             tasks={tasks}
             userType={user.role}
@@ -377,72 +349,114 @@ const FreelancerHome = () => {
             newTasksCount={newTasksCount}
             onViewTasks={() => setNewTasksCount(0)}
         />
-        {/* Vertical Divider */}
-        <div className="h-6 w-px bg-slate-300 mx-3"></div>
+      </li>
+      <li>
         <History userType="freelancer" userId={user.id} isOpen={isHistoryOpen} setIsOpen={setIsHistoryOpen} />
-        
-        {/* Logout */}
-        <div className="freelancerhome-logout">
-          <Logout />
+      </li>
+      <li className='flex items-center'>
+        <Logout />
+      </li>
+    </ul>
+  </nav>
+  <div className="md:hidden mr-4">
+    <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-600">
+        <Bars3Icon className="h-8 w-8" />
+    </button>
+  </div>
+  {isMobileMenuOpen && (
+    <div className="absolute top-0 left-0 w-full h-full bg-yellow-50 z-50">
+        <div className="flex justify-end p-4">
+            <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-600">
+                <XMarkIcon className="h-8 w-8" />
+            </button>
         </div>
+        <ul className="flex flex-col items-center space-y-8 mt-16">
+            <li>
+                <TaskStatus
+                    tasks={tasks}
+                    userType={user.role}
+                    onFinishTask={handleFinishTask}
+                    onPay={handlePayTask}
+                    newTasksCount={newTasksCount}
+                    onViewTasks={() => setNewTasksCount(0)}
+                />
+            </li>
+            <li>
+                <History userType="freelancer" userId={user.id} isOpen={isHistoryOpen} setIsOpen={setIsHistoryOpen} />
+            </li>
+            <li className='flex items-center'>
+                <Logout />
+            </li>
+        </ul>
+    </div>
+  )}
+</header>
+
+{/* Main Content */}
+<div className="relative">
+  {/* Enhanced Availability Toggle */}
+  <div className="absolute top-8 left-8 z-20 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-slate-200/50 hover:shadow-2xl transition-all duration-300">
+    <div className="flex items-center space-x-4">
+      {/* Icon */}
+      <div className={`p-3 rounded-xl ${isAvailable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      
+      {/* Toggle and Text */}
+      <div className="flex-1">
+        <label htmlFor="availability-toggle" className="block text-sm font-semibold text-slate-700 mb-2">
+          Work Availability
+        </label>
+        <div className="flex items-center justify-between">
+          <span className={`text-lg font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+            {isAvailable ? 'Available' : 'Unavailable'}
+          </span>
+          
+          {/* Enhanced Toggle */}
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              id="availability-toggle"
+              type="checkbox"
+              checked={isAvailable}
+              onChange={toggleAvailability}
+              className="sr-only peer"
+            />
+            <div className="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
+          </label>
+        </div>
+        <p className="text-xs text-slate-500 mt-1">
+          {isAvailable ? 'You will receive new job requests' : 'You will not receive new requests'}
+        </p>
       </div>
     </div>
   </div>
-</header>
 
-  {/* Main Content */}
-  <div className="relative">
-    {/* Enhanced Availability Toggle */}
-    <div className="absolute top-8 left-8 z-20 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-slate-200/50 hover:shadow-2xl transition-all duration-300">
-      <div className="flex items-center space-x-4">
-        {/* Icon */}
-        <div className={`p-3 rounded-xl ${isAvailable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        
-        {/* Toggle and Text */}
-        <div className="flex-1">
-          <label htmlFor="availability-toggle" className="block text-sm font-semibold text-slate-700 mb-2">
-            Work Availability
-          </label>
-          <div className="flex items-center justify-between">
-            <span className={`text-lg font-bold ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
-              {isAvailable ? 'Available' : 'Unavailable'}
-            </span>
-            
-            {/* Enhanced Toggle */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                id="availability-toggle"
-                type="checkbox" 
-                checked={isAvailable} 
-                onChange={toggleAvailability}
-                className="sr-only peer"
-              />
-              <div className="w-16 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
-            </label>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            {isAvailable ? 'You will receive new job requests' : 'You will not receive new requests'}
-          </p>
-        </div>
-      </div>
-    </div>
-
-    {/* Map Container */}
-    <div className="h-[calc(100vh-5rem)] relative">
-      <FreelancerMap 
+  {/* Enhanced Map Container with Modern Design */}
+  <div className="relative h-screen">
+    {/* Main map container with enhanced styling */}
+    <div className="absolute inset-0 rounded-xl shadow-2xl overflow-hidden border border-slate-200/80 backdrop-blur-sm">
+      {/* Subtle background gradient for visual depth */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50/30 to-blue-50/30 pointer-events-none"></div>
+      
+      {/* Map with loading state */}
+      <FreelancerMap
         initialLocation={clientsData.map(client => ({
           lat: client.latitude,
           lng: client.longitude,
         }))}
         onDecision={handleDecisionFromMap}
       />
-      {/*<button onClick={() => handleCompleteTask(clientLocation?.serviceRequest?.id)}>Complete Task</button>*/}
+      
+      {/* Subtle corner accents */}
+      <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-white/20 rounded-tl-lg"></div>
+      <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-white/20 rounded-tr-lg"></div>
+      <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-white/20 rounded-bl-lg"></div>
+      <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-white/20 rounded-br-lg"></div>
     </div>
   </div>
+</div>
 
   {/* Chat Widgets */}
   {activeChats.map(chat => (

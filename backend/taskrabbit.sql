@@ -132,7 +132,8 @@ CREATE TABLE public.freelancers (
     images character varying(255),
     status character varying(7),
     role character varying(20),
-    isavailable boolean
+    isavailable boolean,
+    rating numeric(3, 2) DEFAULT 0.00
 );
 
 
@@ -176,6 +177,51 @@ ALTER SEQUENCE public.messages_id_seq OWNER TO postgres;
 ALTER SEQUENCE public.messages_id_seq OWNED BY public.messages.id;
 
 
+--
+-- Name: task; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.task (
+    id integer NOT NULL,
+    client_id bigint,
+    freelancer_id bigint,
+    description text,
+    estimated_duration character varying(50),
+    completed boolean DEFAULT false,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    date_preference character varying(20),
+    custom_date date,
+    time_preference character varying(20),
+    specific_time time without time zone,
+    flexible boolean,
+    price_per_hour character varying(50),
+    status character varying(20) DEFAULT 'pending'::character varying,
+    rating numeric(3, 2) DEFAULT 0.00
+);
+
+
+ALTER TABLE public.task OWNER TO postgres;
+
+--
+-- Name: task_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.task_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.task_id_seq OWNER TO postgres;
+
+--
+-- Name: task_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.task_id_seq OWNED BY public.task.id;
 --
 -- Name: user_info; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -235,6 +281,12 @@ CREATE SEQUENCE public.workers_id_seq
 ALTER SEQUENCE public.workers_id_seq OWNER TO postgres;
 
 --
+-- Name: task id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ ONLY public.task ALTER COLUMN id SET DEFAULT nextval('public.task_id_seq'::regclass);
+
+--
 -- Name: workers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -265,6 +317,13 @@ ALTER TABLE ONLY public.client_locations ALTER COLUMN client_id SET DEFAULT next
 --
 -- Name: freelancers id; Type: DEFAULT; Schema: public; Owner: postgres
 --
+
+--
+-- Data for Name: task; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.task (id, client_id, freelancer_id, description, estimated_duration, completed, created_at, date_preference, custom_date, time_preference, specific_time, flexible, price_per_hour, status, rating) FROM stdin;
+\.
 
 ALTER TABLE ONLY public.freelancers ALTER COLUMN id SET DEFAULT nextval('public.workers_id_seq'::regclass);
 
@@ -303,12 +362,18 @@ COPY public.client_locations (freelancer_id, latitude, longitude, client_id) FRO
 -- Data for Name: freelancers; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.freelancers (id, name, surname, password, email, phone, occupation, latitude, longitude, created_at, images, status, role, isavailable) FROM stdin;
-177	Dylan	Dunn	$2b$10$IsalhishbBywbtO/r9JSHeFpywcPC40Zht6z3/YMDBFhhKbEQxe.W	dylandunn34@gmail.com	0834223943	Que	-29.73629540	30.97614870	2024-12-04 13:09:36.812711	images_1733310576629.jpg	offline	freelancer	f
+COPY public.freelancers (id, name, surname, password, email, phone, occupation, latitude, longitude, created_at, images, status, role, isavailable, rating) FROM stdin;
+177	Dylan	Dunn	$2b$10$IsalhishbBywbtO/r9JSHeFpywcPC40Zht6z3/YMDBFhhKbEQxe.W	dylandunn34@gmail.com	0834223943	Que	-29.73629540	30.97614870	2024-12-04 13:09:36.812711	images_1733310576629.jpg	offline	freelancer	f	0.00
 \.
 
 
 --
+
+--
+-- Name: task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.task_id_seq', 1, false);
 -- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -384,6 +449,13 @@ ALTER TABLE ONLY public.client_locations
 
 
 --
+
+--
+-- Name: task task_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.task
+    ADD CONSTRAINT task_pkey PRIMARY KEY (id);
 -- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -401,6 +473,21 @@ ALTER TABLE ONLY public.user_info
 
 --
 -- Name: user_info user_info_phone_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+
+--
+-- Name: task task_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.task
+    ADD CONSTRAINT task_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.user_info(id);
+
+
+--
+-- Name: task task_freelancer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.task
+    ADD CONSTRAINT task_freelancer_id_fkey FOREIGN KEY (freelancer_id) REFERENCES public.freelancers(id);
 --
 
 ALTER TABLE ONLY public.user_info

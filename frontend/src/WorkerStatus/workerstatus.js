@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Axios from 'axios';
 
 const FreelancerStatusToggle = ({ freelancerId, currentStatus }) => {
@@ -8,7 +8,8 @@ const FreelancerStatusToggle = ({ freelancerId, currentStatus }) => {
     const newStatus = status === 'online' ? 'offline' : 'online';
     setStatus(newStatus);
     try {
-      await Axios.post('/freelancerStatus/updateStatus', { freelancerId, status: newStatus });
+      //await Axios.post('/freelancerStatus/updateStatus', { freelancerId, status: newStatus });
+      await Axios.post(`${process.env.REACT_APP_API_URL}/freelancerStatus/updateStatus`, { freelancerId, status: newStatus });
       console.log('Status updated successfully');
     } catch (error) {
       console.error('Error updating status:', error);

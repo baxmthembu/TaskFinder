@@ -1,8 +1,5 @@
 // Footer.js
 
-import React from 'react';
-import { AiFillFacebook, AiFillTwitterCircle, AiFillInstagram } from 'react-icons/ai';
-
 // Footer.js
 
 const Footer = () => {

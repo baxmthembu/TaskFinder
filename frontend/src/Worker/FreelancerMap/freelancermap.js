@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import  { useState, useEffect} from "react";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
-import { useNavigate } from "react-router-dom";
-import Axios from "axios";
-import { scopedCssBaselineClasses } from "@mui/material";
 import './freelancermap.css';
-import { useAuth } from "../../provider/Authprovider";
 import socket from "../../socket";
 
-const FreelancerMap = ({ initialLocation, data, onDecision}) => {
+
+const FreelancerMap = ({ initialLocation, onDecision}) => {
   const defaultCenter = { lat: -29.7400389, lng: 30.9818962 };
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [clientLocation, setClientLocation] = useState(initialLocation);
   const [selectedMarker, setSelectedMarker] = useState(null); // Tracks which marker is clicked
-  const [workersData, setWorkersData] = useState([]);
-  const [currentRoom, setCurrentRoom] = useState();
+  const [, setWorkersData] = useState([]);
+  const [, setCurrentRoom] = useState();
 
   useEffect(() => {
     socket.on("receiveLocation", (locationData) => {
@@ -39,18 +36,18 @@ const FreelancerMap = ({ initialLocation, data, onDecision}) => {
 
       if (!id) return;
       try {
-        const response = await fetch(`http://localhost:3001/workers/${id}`, {
+        /*const response = await fetch(`http://localhost:3001/workers/${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });*/
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/workers/${id}`, {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
         });
-        /*const response = await fetch(`${process.env.REACT_APP_API_URL}/workers`, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json"
-          }
-        });*/
 
         if (!response.ok) {
           throw new Error("Failed to fetch data at freelancermap.js");
@@ -178,7 +175,7 @@ const handleDecision = (decision) => {
 
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyBn12Rfh5u3y0myZ__u7B2fsl9IvLSzJr0" /*{process.env.GOOGLE_API_KEY} */>
+    <LoadScript googleMapsApiKey= {process.env.GOOGLE_API_KEY} >
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
         {clientLocation && !isNaN(clientLocation.lat) && !isNaN(clientLocation.lng) && (
           <Marker

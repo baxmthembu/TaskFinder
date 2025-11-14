@@ -6,6 +6,13 @@ const Navigator = () => {
 
     return(
         <>
+        {/* Rebranding Announcement Banner */}
+        <div className="bg-teal-200 text-white text-center py-3 px-4 relative z-50">
+            <p className="text-sm font-medium">
+                🎉 <strong>Taskify has rebranded to Taskaroo</strong> 🎉
+            </p>
+        </div>
+        
         <div className="navigator-container">
             <div className="navigator-header">
                 <img src={logo} alt="logo" className="navigator-image"/>

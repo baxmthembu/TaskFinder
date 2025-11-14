@@ -1,16 +1,15 @@
-import { MapContainer as LeafletMap, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useState, useEffect, useMemo, useRef, useContext, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Axios from 'axios';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './map.module.css';
-import StarRating from '../SearchBar/starrating';
+import StarRating from '../StarRating/StarRating';
 import io from 'socket.io-client';
 import { useAuth } from '../../provider/Authprovider';
-import ChatWidget from '../../ChatWidget';
+//import ChatWidget from '../../ChatWidget';
 
-const socket = io('http://localhost:3001');
+//const socket = io('http://localhost:3001');
+const socket = io.connect('https://taskfinder.onrender.com');
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -21,19 +20,18 @@ L.Icon.Default.mergeOptions({
 });
 
 
-const MapComponent = ({ 
-  data = [], 
-  searchQuery, 
-  clientsData = [], 
-  nearbyWorkers, 
+const MapComponent = ({
+  data = [],
+  searchQuery,
+  nearbyWorkers,
   setIsMapLoading,
-  activeChats,
-  setActiveChats,
-  handleFreelancerDecision 
+  handleFreelancerDecision,
+  handleSendLocation: propHandleSendLocation,
+  handleOpenCommentsModal
 }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [mapCenter, setMapCenter] = useState([-29.7400389, 30.9818962]);
-  const [selectedWorker, setSelectedWorker] = useState(null);
+  const [, setSelectedWorker] = useState(null);
   const [responseStatus, setResponseStatus] = useState({});
   const mapRef = useRef(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -41,7 +39,7 @@ const MapComponent = ({
   const [workersData, setWorkersData] = useState([]);
 
   // Component to handle map view changes
-  const ChangeView = ({ center }) => {
+  /*const ChangeView = ({ center }) => {
     const map = useMap();
     useEffect(() => {
       if (center) {
@@ -49,7 +47,7 @@ const MapComponent = ({
       }
     }, [center]);
     return null;
-  };
+  };*/
 
   // Filter workers data
   const filteredWorkers = useMemo(() => {
@@ -74,7 +72,13 @@ const MapComponent = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:3001/workers', {
+        /*const response = await fetch('http://localhost:3001/workers', {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });*/
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/workers`, {
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
@@ -132,55 +136,13 @@ const MapComponent = ({
   // Custom marker icons
   const getMarkerIcon = (imgPath) => {
     return L.icon({
-      iconUrl: `http://localhost:3001/images/${imgPath}`,
+      iconUrl: /*`http://localhost:3001/images/${imgPath}`*/`${process.env.REACT_APP_API_URL}/images/${imgPath}`,
       iconSize: [48, 48],
       iconAnchor: [24, 48],
       popupAnchor: [0, -48]
     });
   };
 
-  const handleSendLocation = useCallback(async (workerId) => {
-    const clientId = localStorage.getItem('id');
-    const client = clientsData.find(client => client.id === clientId);
-
-    try {
-      const response = await Axios.get(`http://localhost:3001/tasks/${clientId}`);
-      const taskData = response.data;
-      
-      if (client && taskData) {
-        const room = [clientId, workerId].sort().join('-');
-        
-        // Emit location data
-        const locationPayload = {
-          location: {
-            latitude: client.latitude,
-            longitude: client.longitude,
-            name: client.name,
-            surname: client.surname,
-            id: clientId
-          },
-          freelancerId: workerId,
-          serviceRequest: taskData
-        };
-
-        socket.emit('sendLocation', locationPayload);
-        setResponseStatus(prev => ({ ...prev, [workerId]: 'pending' }));
-
-        // Create chat connection
-        socket.emit("create_chat", {
-          clientId,
-          freelancerId: workerId,
-          clientName: `${client.name} ${client.surname}`,
-          freelancerName: `${selectedWorker.name} ${selectedWorker.surname}`
-        });
-
-        // Join the room
-        socket.emit("join_room", { room });
-      }
-    } catch(error) {
-      console.error('Error:', error);
-    }
-  }, [clientsData, selectedWorker]);
 
   const handleMarkerClick = (worker) => {
     setSelectedWorker({
@@ -243,7 +205,8 @@ const MapComponent = ({
                   {/* ... popup content remains the same ... */}
                   <div className={styles.card_item}>
                     <div className={styles.card_inner}>
-                      <img src={`http://localhost:3001/images/${worker.images}`} alt='avatar' />
+                      {/*<img src={`http://localhost:3001/images/${worker.images}`} alt='avatar' />*/}
+                      <img src={`${process.env.REACT_APP_API_URL}/images/${worker.images}`} alt='avatar' />
                       <div className={styles.userName}>{worker.name} {worker.surname}</div>
                       <div className={styles.userJob}>{worker.occupation}</div>
                       <div className={styles.userStatus}>
@@ -267,22 +230,22 @@ const MapComponent = ({
                         <div style={{ color: 'gray' }}>Waiting for response...</div>
                       )}
                       <div className={styles.detail_box}>
-                        <StarRating />
+                        <StarRating rating={worker.rating} />
                       </div>
-                      <div className={styles.buttons}>
-                        <button 
-                          className={styles.button} 
-                          /*onClick={() => handleSendLocation(worker.id)}*/
-                          onClick={() => {
-                            if (worker.isavailable && worker.status === 'online') {
-                              handleSendLocation(worker.id);
-                            }
-                          }}
-                          disabled={!worker.isavailable || worker.status !== 'online'}
+                      <div className="mt-4 flex items-center space-x-4">
+                        <button
+                          className="px-5 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors"
+                          onClick={() => propHandleSendLocation(worker.id)}
                         >
                           Connect
                         </button>
-                      </div>
+                        <button
+                          className="text-blue-600 hover:underline font-medium"
+                          onClick={() => handleOpenCommentsModal(worker.id)}
+                        >
+                          Comments
+                        </button>
+                        </div>
                     </div>
                   </div>
                 </div>

@@ -34,8 +34,10 @@
   width: 100% !important;
 }*/
 
-.detail_box{
-	margin-top: -1rem;
+.detail_box {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
 }
 
 
@@ -44,7 +46,9 @@
 	height: 120px;
 	margin-bottom: 10px;
 	border-radius: 50%;
-	align-items: center;
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
 	transition: transform .2s;
 }
 
@@ -144,11 +148,15 @@
 
 .card_item {
 	text-align: center;
-	/*Added*/
 	margin: 5px;
 	justify-content: center;
 	align-items: center;
-	
+}
+
+.card_inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .mapWrapper {

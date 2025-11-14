@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 };*/
 
 // AuthProvider.js
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import Axios from 'axios';
 
 const AuthContext = createContext();
@@ -128,77 +128,39 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     Axios.defaults.withCredentials = true;
 
-    const verifyUser = async () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser); // Set user immediately to prevent redirect
-        } catch (error) {
-          console.error("Failed to parse user from localStorage", error);
-          localStorage.clear();
-        }
-      }
-
+    const checkAuthStatus = async () => {
       try {
-        const response = await Axios.get('http://localhost:3001/validate');
+        //const response = await Axios.get('http://localhost:3001/validate');
+        const response = await Axios.get(`${process.env.REACT_APP_API_URL}/validate`);
         if (response.data.authenticated) {
-          const fetchedUser = response.data.user;
-          setUser(fetchedUser);
-          localStorage.setItem('user', JSON.stringify(fetchedUser));
-          localStorage.setItem('role', fetchedUser.role);
-          localStorage.setItem('id', fetchedUser.id);
+          setUser(response.data.user);
+          localStorage.setItem('role', response.data.user.role);
+          localStorage.setItem('id', response.data.user.id);
         } else {
-          // Only clear if we have stored user data but backend says not authenticated
-          if (storedUser) {
-            setUser(null);
-            localStorage.clear();
-          }
+          setUser(null);
+          localStorage.removeItem('role');
+          localStorage.removeItem('id');
         }
       } catch (error) {
         console.error('Authentication check failed:', error);
-        // Don't clear localStorage on network errors - keep user logged in
-        // Only clear if we definitively know the session is invalid
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    verifyUser();
+    checkAuthStatus();
   }, []);
-
-  // Function to check authentication status
-  const checkAuthStatus = async () => {
-    try {
-      const response = await Axios.get('http://localhost:3001/validate');
-      if (response.data.authenticated) {
-        setUser(response.data.user);
-        // Store user info in localStorage for quick access (non-sensitive data only)
-        localStorage.setItem('role', response.data.user.role);
-        localStorage.setItem('id', response.data.user.id);
-      } else {
-        setUser(null);
-        localStorage.removeItem('role');
-        localStorage.removeItem('id');
-      }
-    } catch (error) {
-      console.error('Authentication check failed:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Login function for clients
   const login = async (credentials) => {
     try {
-      const response = await Axios.post('http://localhost:3001/login', credentials);
-      
+      //const response = await Axios.post('http://localhost:3001/login', credentials);
+      const response = await Axios.post(`${process.env.REACT_APP_API_URL}/login`, credentials);
       if (response.data.msg === "Authentication Successful") {
         setUser(response.data.user);
         localStorage.setItem('role', response.data.user.role);
         localStorage.setItem('id', response.data.user.id);
-        localStorage.setItem('user', JSON.stringify(response.data.user)); // Store user object
         return { success: true, user: response.data.user };
       } else {
         return { success: false, error: response.data.msg };
@@ -212,13 +174,12 @@ export const AuthProvider = ({ children }) => {
   // Login function for workers
   const worker_login = async (credentials) => {
     try {
-      const response = await Axios.post('http://localhost:3001/workerlogin', credentials);
-      
+      //const response = await Axios.post('http://localhost:3001/workerlogin', credentials);
+      const response = await Axios.post(`${process.env.REACT_APP_API_URL}/worker_login`, credentials);
       if (response.data.msg === "Authentication Successful") {
         setUser(response.data.user);
         localStorage.setItem('role', response.data.user.role);
         localStorage.setItem('id', response.data.user.id);
-        localStorage.setItem('user', JSON.stringify(response.data.user)); // Store user object
         return { success: true, user: response.data.user };
       } else {
         return { success: false, error: response.data.msg };
@@ -230,10 +191,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    localStorage.removeItem('id');
+    try {
+      //await Axios.post('http://localhost:3001/logout');
+      await Axios.post(`${process.env.REACT_APP_API_URL}/logout`);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('role');
+      localStorage.removeItem('id');
+    }
   };
 
   const value = {

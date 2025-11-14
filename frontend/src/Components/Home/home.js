@@ -1,11 +1,11 @@
 import { toast } from 'react-toastify';
-import { useEffect, useState, useMemo, useContext } from 'react';
-import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
-import StarRating from '../SearchBar/starrating'; // Assuming you have a StarRating component
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { ClipboardDocumentCheckIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import StarRating from '../StarRating/StarRating';
 import './home.css';
 import socket from '../../socket';
-import TopButton from '../BackToTop/top';
+import CommentsModal from '../CommentsModal/CommentsModal';
+//import TopButton from '../BackToTop/top';
 import logo from '../Images/taskaroo.svg';
 import MapComponent from '../MapComponent/testmap';
 import Axios from 'axios';
@@ -17,12 +17,10 @@ import PayPal from '../Paypal/paypal';
 import { Tooltip } from 'react-tooltip'
 import 'react-tooltip/dist/react-tooltip.css'
 
-//const socket = io.connect('https://taskfinder.onrender.com');
 
 const Plumber = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState('starRating');
-    const [showMessageButton, setShowMessageButton] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [workersData, setWorkersData] = useState([]);
     const [clientsData, setClientsData] = useState([]);
@@ -33,21 +31,43 @@ const Plumber = () => {
     //const [activeChat, setActiveChat] = useState(null);
     const [activeChats, setActiveChats] = useState([]);
     const {user} = useAuth();
-    const [conversations, setConversations] = useState([]);
+    const [, setConversations] = useState([]);
     const [taskDetails, setTaskDetails] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [notificationCount, setNotificationCount] = useState(0);
+    const [, setNotificationCount] = useState(0);
     const [inProgressCount, setInProgressCount] = useState(0);
-    const [showHistory, setShowHistory] = useState(false);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [taskForPayment, setTaskForPayment] = useState(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+    const [selectedFreelancerId, setSelectedFreelancerId] = useState(null);
     
+    useEffect(() => {
+        // new
+        const handleNewRating = ({ freelancerId, newAverageRating }) => {
+            setWorkersData(prevWorkers =>
+                prevWorkers.map(worker =>
+                    worker.id === freelancerId
+                        ? { ...worker, rating: newAverageRating }
+                        : worker
+                )
+            );
+        };
+
+        socket.on('new_rating', handleNewRating);
+
+        return () => {
+            socket.off('new_rating', handleNewRating);
+        };
+    }, []);
+
     useEffect(() => {
         const fetchTaskDetails = async () => {
             const clientId = localStorage.getItem('id');
             if (clientId) {
                 try {
-                    const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                    //const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                    const response = await Axios.get(`${process.env.REACT_APP_API_URL}/task-details/${clientId}`);
                     setTaskDetails(response.data);
                 } catch (error) {
                     console.error('Error fetching task details:', error);
@@ -59,7 +79,8 @@ const Plumber = () => {
             const clientId = localStorage.getItem('id');
             if (clientId) {
                 try {
-                    const response = await Axios.get(`http://localhost:3001/tasks/${clientId}/in-progress-count`);
+                    //const response = await Axios.get(`http://localhost:3001/tasks/${clientId}/in-progress-count`);
+                    const response = await Axios.get(`${process.env.REACT_APP_API_URL}/tasks/${clientId}/in-progress-count`);
                     setInProgressCount(response.data.count);
                 } catch (error) {
                     console.error('Error fetching in-progress task count:', error);
@@ -72,7 +93,13 @@ const Plumber = () => {
 
         const fetchData = async () => {
             try {
-                const response = await fetch('http://localhost:3001/workers', {
+                /*const response = await fetch('http://localhost:3001/workers', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                });*/
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/workers`, {
                     headers: {
                         'Content-Type': 'application/json',
                         Accept: 'application/json',
@@ -94,10 +121,16 @@ const Plumber = () => {
           
         const locationData = async () => {
             try {
-                const response = await fetch('http://localhost:3001/clients', {
+                /*const response = await fetch('http://localhost:3001/clients', {
                     headers: {
                         'Content-Type': 'application/json',
                         Accept: 'application/json', 
+                    },
+                });*/
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/clients`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
                     },
                 });
 
@@ -144,7 +177,8 @@ const Plumber = () => {
                 const clientId = localStorage.getItem('id');
                 if (clientId) {
                     try {
-                        const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                        //const response = await Axios.get(`http://localhost:3001/task-details/${clientId}`);
+                        const response = await Axios.get(`${process.env.REACT_APP_API_URL}/task-details/${clientId}`);
                         setTaskDetails(response.data);
                     } catch (error) {
                         console.error('Error refetching task details:', error);
@@ -234,11 +268,11 @@ const Plumber = () => {
         setCurrentPage(1);
     }, [searchTerm, sortBy]);
     
-    const handleFreelancerDecision = async ({ clientId, workerId, decision, room }) => {
+    const handleFreelancerDecision = useCallback(async ({ clientId, workerId, decision, room }) => {
         if (decision === "accepted") {
             const worker = workersData.find(w => w.id === workerId);
             if (!worker) return;
-        
+         
             // Create new chat object
             const newChat = {
                 room,
@@ -261,14 +295,14 @@ const Plumber = () => {
                 if (prev.some(chat => chat.room === room)) return prev;
                 return [...prev, newChat];
             });
-        
+         
             // Join the new room
             socket.emit("join_room", { room });
-        
+         
             // Force refresh of conversations list
             socket.emit("request_chat_update", { userId: user.id });
         }
-    };
+    }, [workersData, user.id, user.name, user.surname]);
 
     useEffect(() => {
         const handleStatusUpdate = ({ workerId, decision }) => {
@@ -287,7 +321,8 @@ const Plumber = () => {
         const handleRefreshChats = async ({ userId }) => {
             if (userId === user.id) {
                 try {
-                    const response = await fetch(`http://localhost:3001/chats/${userId}`);
+                    //const response = await fetch(`http://localhost:3001/chats/${userId}`);
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${userId}`);
                     const data = await response.json();
                 
                     // Update conversations
@@ -333,7 +368,7 @@ const Plumber = () => {
 
         socket.on("refresh_chats", handleRefreshChats);
         return () => socket.off("refresh_chats", handleRefreshChats);
-    }, [user.id, activeChats]); // Add activeChats to dependencies
+    }, [user.id, user.name, user.surname, user.role, activeChats]); // Add user.role to dependencies
 
 
     const handlePayButtonClick = (details) => {
@@ -344,8 +379,9 @@ const Plumber = () => {
         if (!taskForPayment) return;
         try {
             const clientId = localStorage.getItem('id');
-            await Axios.post(`http://localhost:3001/tasks/${taskForPayment.task.id}/pay`, { clientId });
-            
+            //await Axios.post(`http://localhost:3001/tasks/${taskForPayment.task.id}/pay`, { clientId });
+            await Axios.post(`${process.env.REACT_APP_API_URL}/tasks/${taskForPayment.task.id}/pay`, { clientId });
+
             // Optimistically update UI by removing the task from the active list.
             setTaskDetails(prevDetails =>
                 prevDetails.filter(d => d.task.task_id !== taskForPayment.task.task_id)
@@ -367,7 +403,8 @@ const Plumber = () => {
     useEffect(() => {
         const fetchConversations = async () => {
             try {
-                const response = await fetch(`http://localhost:3001/chats/${user.id}`);
+                //const response = await fetch(`http://localhost:3001/chats/${user.id}`);
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${user.id}`);
                 const data = await response.json();
                 setConversations(data);
             } catch (error) {
@@ -416,7 +453,7 @@ const Plumber = () => {
 
         socket.on('chat_created', handleNewChat);
         return () => socket.off('chat_created', handleNewChat);
-    }, [user.id, activeChats]);
+    }, [user.id, user.name, user.surname, user.role, activeChats]);
 
     useEffect(() => {
         const handleFreelancerDecisionEvent = (data) => {
@@ -425,14 +462,15 @@ const Plumber = () => {
 
         socket.on("freelancer_decision", handleFreelancerDecisionEvent);
         return () => socket.off("freelancer_decision", handleFreelancerDecisionEvent);
-    }, [workersData, user.id, user.name, user.surname]);
+    }, [handleFreelancerDecision, workersData, user.id, user.name, user.surname]);
 
     const handleSendLocation = async (workerId) => {
         const clientId = localStorage.getItem('id');
         const client = clientsData.find(c => String(c.id) === clientId);
     
         try {
-            const response = await Axios.get(`http://localhost:3001/tasks/${clientId}`);
+            //const response = await Axios.get(`http://localhost:3001/tasks/${clientId}`);
+            const response = await Axios.get(`${process.env.REACT_APP_API_URL}/tasks/${clientId}`);
             const tasks = response.data; // Assuming the endpoint returns an array of tasks
             
             // Find the most recent task that is still pending
@@ -474,21 +512,34 @@ const Plumber = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleCloseChat = (room) => {
+    /*const handleCloseChat = (room) => {
         socket.emit('leave_room', { room });
         setActiveChats(prev => prev.filter(chat => chat.room !== room));
+    };*/
+
+    const handleOpenCommentsModal = (freelancerId) => {
+        setSelectedFreelancerId(freelancerId);
+        setIsCommentsModalOpen(true);
+    };
+
+    const handleCloseCommentsModal = () => {
+        setIsCommentsModalOpen(false);
+        setSelectedFreelancerId(null);
     };
 
 
     return (
-        <div className="min-h-screen bg-white-50 pb-24">
+        <div className="min-h-screen bg-teal-50 pb-24 overflow-x-hidden">
             {/* Header */}
             <header className="bg-transparent py-4 px-6 flex items-center">
-                <div className="request-form-logo ml-10 mt-9">
+                {/*<div className="request-form-logo ml-10 mt-9">
                     <img src={logo} alt='logo' className="max-w-[25rem]" />
-                </div>
+                </div>*/}
+                <div className="logo ml-10 mt-6">
+                          <img src={logo} alt="Logo" className="max-w-[20rem] drop-shadow-md" />
+                        </div>
                 <div className="flex-grow"></div>
-                <nav className="flex items-center space-x-4 mr-20 bg-white rounded-full shadow-lg px-6 py-2">
+                <nav className="hidden md:flex items-center space-x-4 mr-20 bg-white rounded-full shadow-lg px-6 py-2">
                     <ul className="flex items-center space-x-8">
                         <li>
                             <div className="relative">
@@ -497,7 +548,7 @@ const Plumber = () => {
                                         setIsDropdownOpen(!isDropdownOpen);
                                         setNotificationCount(0);
                                     }}
-                                    className="relative px-4 py-2 bg-transparent text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="relative px-4 py-2 bg-transparent text-teal-700 hover:bg-gray-100 rounded-md transition-colors"
                                     data-tooltip-id="task-status-tooltip"
                                     data-tooltip-content="Task Status"
                                 >
@@ -510,11 +561,12 @@ const Plumber = () => {
                                     )}
                                 </button>
                                 {isDropdownOpen && taskDetails && (
-                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl p-4 z-50">
-                                        {taskDetails.map((details, index) => (
-                                            <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
-                                                {details.freelancer ? (
-                                                    <div className="flex items-center mb-2">
+                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50">
+                                        <div className="max-h-[400px] overflow-y-auto p-4">
+                                            {taskDetails.map((details, index) => (
+                                                <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
+                                                    {details.freelancer ? (
+                                                        <div className="flex items-center mb-2">
                                                         <img src={`http://localhost:3001/images/${details.freelancer.images}`} alt="Freelancer" className="w-12 h-12 rounded-full mr-4"/>
                                                         <div>
                                                             <p className="font-bold">{details.freelancer.name} {details.freelancer.surname}</p>
@@ -539,7 +591,8 @@ const Plumber = () => {
                                                     </button>
                                                 )}
                                             </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -552,6 +605,49 @@ const Plumber = () => {
                         </li>
                     </ul>
                 </nav>
+                <div className="md:hidden mr-4">
+                    <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-teal-700">
+                        <Bars3Icon className="h-8 w-8" />
+                    </button>
+                </div>
+                {isMobileMenuOpen && (
+                    <div className="absolute top-0 left-0 w-full h-full bg-yellow-50 z-50">
+                        <div className="flex justify-end p-4">
+                            <button onClick={() => setIsMobileMenuOpen(false)} className="text-teal-700">
+                                <XMarkIcon className="h-8 w-8" />
+                            </button>
+                        </div>
+                        <ul className="flex flex-col items-center space-y-8 mt-16">
+                            <li>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => {
+                                            setIsDropdownOpen(!isDropdownOpen);
+                                            setNotificationCount(0);
+                                        }}
+                                        className="relative px-4 py-2 bg-transparent text-teal-700 hover:bg-gray-100 rounded-md transition-colors"
+                                        data-tooltip-id="task-status-tooltip"
+                                        data-tooltip-content="Task Status"
+                                    >
+                                        <ClipboardDocumentCheckIcon className="h-6 w-6" />
+                                        <span className="sr-only">Task Status</span>
+                                        {inProgressCount > 0 && (
+                                            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                                                {inProgressCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </li>
+                            <li>
+                                <History userType="client" userId={user.id} isOpen={isHistoryOpen} setIsOpen={setIsHistoryOpen} />
+                            </li>
+                            <li className='flex items-center'>
+                                <Logout />
+                            </li>
+                        </ul>
+                    </div>
+                )}
             </header>
             <div className="absolute left-1/2 transform -translate-x-1/2 mt-0 w-full max-w-2xl px-4">
                 <input 
@@ -563,7 +659,7 @@ const Plumber = () => {
                         setSearchQuery(event.target.value);
                     }} 
                     value={searchQuery}
-                    className="w-full px-5 py-3 border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                    className="w-full px-5 py-3 border border-teal-300 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-lg"
                 />
             </div>
 
@@ -571,23 +667,25 @@ const Plumber = () => {
             {/* Main Content */}
             <div className="flex h-[calc(100vh-180px)] mt-16 w-full relative z-10 min-h-0 overflow-hidden">
                 {/* Map Container */}
-                <div className={`flex-1 h-screen min-h-[500px] relative z-10 ${isMapLoading ? 'bg-gray-100 flex items-center justify-center' : ''}`}>
+                <div className={`lg:flex flex-1 h-screen min-h-[500px] relative z-10 ${isMapLoading ? 'bg-gray-100 items-center justify-center' : ''}`}>
                     {isMapLoading && <div className="text-lg text-gray-600">Loading map...</div>}
                     <div className='absolute inset-0 border-r border-gray-200'>
-                        <MapComponent 
-                            data={workersData} 
-                            searchQuery={searchQuery} 
-                            clientsData={clientsData} 
-                            setIsMapLoading={setIsMapLoading} 
+                        <MapComponent
+                            data={workersData}
+                            searchQuery={searchQuery}
+                            clientsData={clientsData}
+                            setIsMapLoading={setIsMapLoading}
                             activeChats={activeChats}
                             setActiveChats={setActiveChats}
-                            handleFreelancerDecision={handleFreelancerDecision} 
+                            handleFreelancerDecision={handleFreelancerDecision}
+                            handleSendLocation={handleSendLocation}
+                            handleOpenCommentsModal={handleOpenCommentsModal}
                         />
                     </div>
                 </div>
 
                 {/* Cards Container */}
-                <div className="flex-1 min-w-[500px] h-full overflow-y-auto p-5 bg-gray-50 relative z-20">
+                <div className="w-full lg:w-3/5 h-full overflow-y-auto p-5 bg-gray-100 relative z-20 hidden lg:block">
                     <div className="flex justify-end mb-4">
                         <div className="flex items-center space-x-3">
                             <select
@@ -600,61 +698,69 @@ const Plumber = () => {
                             </select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 py-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6 py-5">
                         {currentItems.length > 0 ? (
                             currentItems.map((value) => (
-                                <div key={value.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 hover:-translate-y-1">
-                                    <div className="p-5 text-center">
-                                        <img 
+                                <div key={value.id} className="bg-yellow-50 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden md:flex">
+                                    <div className="md:flex-shrink-0 p-5 flex items-center justify-center">
+                                        <img
                                             src={'http://localhost:3001/images/' + value.images}
-                                            alt='avatar' 
-                                            className="w-32 h-32 mx-auto mb-3 rounded-full transition-transform duration-200"
+                                            alt='avatar'
+                                            className="h-24 w-24 md:h-28 md:w-28 rounded-full object-cover"
                                         />
-                                        <div className="text-gray-800 font-semibold text-xl truncate">
-                                            {value.name} {value.surname}
-                                        </div>
-                                        <div className="text-gray-900 font-bold text-xl">{value.occupation}</div>
-                                        <div className="text-gray-700 mt-2">
-                                            Status: {value.status}
-                                            <span className={`inline-block w-3 h-3 rounded-full ml-2 ${value.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                                        </div>
-                                        <div className="text-gray-700">
-                                            Availability: {value.isavailable ? 'Available' : 'Not Available'}
-                                        </div>
-                
-                                        {/* Response Status */}
-                                        {responseStatus[value.id] === 'declined' && (
-                                            <div className="text-red-500 flex items-center justify-center mt-2">
-                                                <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span> Declined
+                                    </div>
+                                    <div className="p-5 flex-grow">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="text-xl font-bold text-gray-800">{value.name} {value.surname}</div>
+                                                <p className="text-md font-semibold text-orange-600">{value.occupation}</p>
                                             </div>
-                                        )}
-                                        {responseStatus[value.id] === 'accepted' && (
-                                            <div className="text-green-500 flex items-center justify-center mt-2">
-                                                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Accepted
+                                            <div className="flex-shrink-0 ml-4">
+                                                <StarRating rating={value.rating} />
                                             </div>
-                                        )}
-                                        {responseStatus[value.id] === 'pending' && (
-                                            <div className="text-gray-500 mt-2">Waiting for response...</div>
-                                        )}
-                
-                                        <div className="detail-box -mt-1">
-                                            <StarRating />
                                         </div>
-                                        <div className="buttons inline-block mt-3">
-                                            <button 
-                                                className="px-6 py-3 bg-purple-500 text-white rounded-lg font-semibold shadow-lg hover:bg-teal-400 transition-colors duration-200 text-xl"
+
+                                        <div className="mt-3 text-sm text-gray-600 space-y-1">
+                                            <div className="flex items-center">
+                                                <p>Status: {value.status}</p>
+                                                <span className={`ml-2 h-3 w-3 rounded-full ${value.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                                            </div>
+                                            <p>Availability: {value.isavailable ? 'Available' : 'Not Available'}</p>
+                                        </div>
+                                        
+                                        <div className="mt-2 text-sm">
+                                            {responseStatus[value.id] === 'declined' && (
+                                                <div className="font-semibold text-red-500">Declined</div>
+                                            )}
+                                            {responseStatus[value.id] === 'accepted' && (
+                                                <div className="font-semibold text-green-500">Accepted</div>
+                                            )}
+                                            {responseStatus[value.id] === 'pending' && (
+                                                <div className="text-gray-500">Waiting for response...</div>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-4 flex items-center space-x-4">
+                                            <button
+                                                className="px-5 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition-colors"
                                                 onClick={() => handleSendLocation(value.id)}
                                             >
                                                 Connect
                                             </button>
+                                            <button
+                                                className="text-teal-600 hover:underline font-medium"
+                                                onClick={() => handleOpenCommentsModal(value.id)}
+                                            >
+                                                Comments
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            ))
+                           ))
                         ) : (
                             <div className="col-span-full text-center py-16">
                                 <div className="text-6xl mb-4">🔍</div>
-                                <div className="text-2xl font-semibold text-gray-600 mb-2">No workers found</div>
+                                <div className="text-2xl font-semibold text-teal-800 mb-2">No workers found</div>
                                 <div className="text-gray-500">Try adjusting your search criteria</div>
                             </div>
                         )}
@@ -670,9 +776,9 @@ const Plumber = () => {
                             key={page}
                             onClick={() => handlePageClick(page)}
                             className={`px-4 py-2 mx-1 rounded ${
-                                currentPage === page 
-                                ? 'bg-gray-800 text-white' 
-                                : 'bg-gray-300 text-gray-800 hover:bg-gray-400'
+                                currentPage === page
+                                ? 'bg-teal-500 text-white'
+                                : 'bg-yellow-200 text-teal-800 hover:bg-yellow-300'
                             }`}
                         >
                             {page}
@@ -708,6 +814,11 @@ const Plumber = () => {
                 </div>
             )}
             <Tooltip id="task-status-tooltip" />
+            <CommentsModal
+                isOpen={isCommentsModalOpen}
+                onClose={handleCloseCommentsModal}
+                freelancerId={selectedFreelancerId}
+            />
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import {useState} from "react";
 import './StarRating.module.css';
 import { FaStar } from "react-icons/fa";
 

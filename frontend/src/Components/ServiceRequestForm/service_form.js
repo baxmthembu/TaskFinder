@@ -83,8 +83,9 @@ const ServiceRequestForm = () => {
         price_range: parseFloat(formData.priceRange),
       };
 
-      const response = await Axios.post('http://localhost:3001/tasks', payload);
-
+      //const response = await Axios.post('http://localhost:3001/tasks', payload);
+      const response = await Axios.post(`${process.env.REACT_APP_API_URL}/tasks`, payload);
+      
       if (response.status === 200) {
         navigate('/home');
       }
@@ -107,9 +108,9 @@ const ServiceRequestForm = () => {
     'Large - Est. 3+ hours'
   ];
 
-  return (
-    <div className=/*" max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"*/ "min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
+  /*return (
+    <div>
+      {/* Header *}
       <header className="flex items-center justify-between py-4 pb-2 border-b-2 border-slate-300">
         <div className=" logo "> 
             <img src={logo} alt="Logo" className="max-w-[25rem]" />
@@ -119,11 +120,11 @@ const ServiceRequestForm = () => {
         </div>
       </header>
   
-      {/* Main Content Grid */}
+      {/* Main Content Grid *}
       <div className="grid grid-cols-1 p-4 lg:grid-cols-3 gap-8 lg:gap-12">
-        {/* Sidebar */}
+        {/* Sidebar *}
         <aside className="lg:col-span-1 space-y-8">
-          {/* Date Preference Section */}
+          {/* Date Preference Section *}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Date</h3>
           <div className="space-y-3">
@@ -160,7 +161,7 @@ const ServiceRequestForm = () => {
             )}
           </div>
       
-          {/* Time Preference Section */}
+          {/* Time Preference Section *}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Time of day</h3>
             <div className="space-y-3">
@@ -202,7 +203,7 @@ const ServiceRequestForm = () => {
             </label>
           </div>
       
-          {/* Price Range Section */}
+          {/* Price Range Section *}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Price</h3>
             <div className="price-range">
@@ -225,7 +226,7 @@ const ServiceRequestForm = () => {
           </div>
         </aside>
     
-        {/* Main Form Content */}
+        {/* Main Form Content *}
         <main className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-slate-200/80">
           <form onSubmit={handleSubmit} className="space-y-8 h-full flex flex-col">
             <div className="flex-grow">
@@ -271,7 +272,7 @@ const ServiceRequestForm = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button *}
           <div className="pt-8 mt-auto border-t border-slate-200 text-right">
             <button 
               type="submit" 
@@ -284,7 +285,191 @@ const ServiceRequestForm = () => {
       </main>
     </div>
   </div>
-  );
+  );*/
+  return (
+    <div className="min-h-screen bg-teal-50 flex flex-col">
+  {/* Header */}
+  <header className="bg-transparent py-4 px-6 flex items-center justify-between border-b border-teal-200">
+    {/*<div className="logo">
+      <img src={logo} alt="Logo" className="max-w-[25rem]" />
+    </div>*/}
+    <div className="logo ml-10 mt-6">
+              <img src={logo} alt="Logo" className="max-w-[20rem] drop-shadow-md" />
+            </div>
+    <div className="back-button">
+      <Logout />
+    </div>
+  </header>
+
+  {/* Main Content */}
+  <div className="flex flex-1 flex-col lg:flex-row p-6 lg:p-10 gap-8">
+    {/* Sidebar */}
+    <aside className="lg:w-1/3 bg-white rounded-xl shadow-md border border-teal-100 p-6 space-y-8">
+      {/* Date Preference */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Date</h3>
+        <div className="space-y-3">
+          {DATE_OPTIONS.map((option) => (
+            <label key={option} className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="datePreference"
+                value={option}
+                checked={formData.datePreference === option}
+                onChange={handleChange}
+                required
+                className="h-4 w-4 text-teal-600 border-gray-300 focus:ring-teal-500"
+              />
+              <span className="text-sm font-medium text-gray-700">{option}</span>
+            </label>
+          ))}
+        </div>
+        {formData.datePreference === "Choose Dates" && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Select specific date:
+            </label>
+            <DatePicker
+              selected={formData.customDate}
+              onChange={handleChange}
+              minDate={new Date()}
+              dateFormat="MMMM d, yyyy"
+              placeholderText="Select a date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+              isClearable
+              dropdownMode="select"
+              required
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Time Preference */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Time of Day</h3>
+        <div className="space-y-3">
+          {TIME_OPTIONS.map((option) => (
+            <label key={option} className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="timePreference"
+                value={option}
+                checked={formData.timePreference === option}
+                onChange={handleChange}
+                className="h-4 w-4 text-teal-600 border-gray-300 focus:ring-teal-500"
+              />
+              <span className="text-sm font-medium text-gray-700">{option}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
+          <label className="block text-sm font-medium text-gray-600">
+            or choose a specific time
+          </label>
+          <input
+            type="time"
+            name="specificTime"
+            value={formData.specificTime}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+          />
+        </div>
+
+        <label className="mt-4 pt-4 border-t border-gray-200 flex items-center space-x-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="isFlexible"
+            checked={formData.isFlexible}
+            onChange={handleChange}
+            className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+          />
+          <span className="text-sm font-medium text-gray-700">I'm Flexible</span>
+        </label>
+      </div>
+
+      {/* Price Section */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Price</h3>
+        <input
+          type="range"
+          name="priceRange"
+          min="50"
+          max="5000"
+          step="15"
+          value={formData.priceRange}
+          onChange={handleChange}
+          required
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+        />
+        <div className="flex justify-between items-center mt-3">
+          <span className="text-xl font-bold text-teal-600">
+            R{formData.priceRange}
+          </span>
+          <small className="text-xs text-gray-500">Avg. rate: R56.50</small>
+        </div>
+      </div>
+    </aside>
+
+    {/* Main Form */}
+    <main className="flex-1 bg-white p-8 rounded-xl shadow-md border border-teal-100">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-8">
+        <div className="flex-grow">
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">Task Information</h1>
+          <label htmlFor="task" className="block text-lg font-semibold text-gray-800 mb-2">
+            Explain your task in detail
+          </label>
+          <textarea
+            id="task"
+            name="task"
+            value={formData.task}
+            onChange={handleChange}
+            placeholder='e.g. "I need help mounting a 65-inch TV on a drywall wall."'
+            required
+            rows={6}
+            className="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition text-gray-700 placeholder-gray-400"
+          />
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Estimated Duration</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {DURATION_OPTIONS.map((option) => (
+              <label key={option} className="relative">
+                <input
+                  type="radio"
+                  name="time"
+                  value={option}
+                  checked={formData.time === option}
+                  onChange={handleChange}
+                  required
+                  className="sr-only peer"
+                />
+                <div className="p-4 border border-gray-300 rounded-lg text-center cursor-pointer peer-checked:border-teal-600 peer-checked:ring-2 peer-checked:ring-teal-500 peer-checked:text-teal-600 transition-all hover:border-gray-400">
+                  <span className="font-medium text-gray-800 peer-checked:text-teal-600">
+                    {option}
+                  </span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div className="pt-6 mt-auto border-t border-gray-200 text-right">
+          <button
+            type="submit"
+            className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-8 rounded-full shadow-md transition-transform transform hover:scale-105"
+          >
+            Continue
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+
+  )
 };
 
 export default ServiceRequestForm;

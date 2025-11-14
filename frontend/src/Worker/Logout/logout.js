@@ -46,7 +46,7 @@ import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid'
 import { Tooltip } from 'react-tooltip'
 
 const Logout = () => {
-    const { logout, user } = useAuth();
+    const { logout} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -62,18 +62,18 @@ const Logout = () => {
     };
 
     // Optional: Display different logout message based on user role
-    const getLogoutMessage = () => {
+    /*const getLogoutMessage = () => {
         if (user) {
             return 'Logout';
         }
         return 'Logout';
-    };
+    };*/
 
     return (
       <div className="">
         <button 
             onClick={handleLogout}
-            className="bg-transparent text-gray-600 hover:bg-gray-100 rounded-md px-4 py-2 transition-colors"
+            className="relative px-4 py-2 bg-transparent text-teal-700 hover:bg-gray-100 rounded-md transition-colors"
             data-tooltip-id="logout-tooltip"
             data-tooltip-content="Logout"
         >

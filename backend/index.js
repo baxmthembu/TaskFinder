@@ -423,9 +423,10 @@ socket.on('leave_room', (room) => {
 app.use(json());
 app.use(urlencoded({ extended: false }));
 app.use(cors({
-  origin: ["http://localhost:3000", 'https://baxmthembu.github.io'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
+  origin: 'https://taskify.co.za',//["http://localhost:3000", 'https://baxmthembu.github.io'],
+  //methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  exposedHeaders: ['Set-Cookie']
 }));
 app.use(cookieParser());
 app.use(express.static('public'));
@@ -445,13 +446,26 @@ app.use('/uploads', express.static('public/uploads', {
 
 setInterval(() => {
   fs.readdir('public/chat-images', (err, files) => {
+    if (err) {
+      console.error("Failed to read chat-images directory:", err);
+      return;
+    }
     files.forEach(file => {
       if (!file.startsWith('compressed-')) {
-        const filePath = `public/chat-images/${file}`;
-        const stat = fs.statSync(filePath);
-        if (Date.now() - stat.mtimeMs > 24 * 60 * 60 * 1000) {
-          fs.unlinkSync(filePath);
-        }
+        const filePath = path.join('public/chat-images', file);
+        fs.stat(filePath, (statErr, stat) => {
+          if (statErr) {
+            console.error(`Failed to get stats for file ${filePath}:`, statErr);
+            return;
+          }
+          if (Date.now() - stat.mtimeMs > 24 * 60 * 60 * 1000) {
+            fs.unlink(filePath, (unlinkErr) => {
+              if (unlinkErr) {
+                console.error(`Failed to delete file ${filePath}:`, unlinkErr);
+              }
+            });
+          }
+        });
       }
     });
   });
@@ -517,7 +531,8 @@ const loginLimiter = rateLimit({
 });
 
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers['authorization'];
+  const token = req.cookies.token || (authHeader && authHeader.split(' ')[1]);
   
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
@@ -662,7 +677,8 @@ app.get('/workers', async (req, res) => {
       images: worker.images.toString('base64'), // Convert Buffer to base64 if 'image' is a Buffer
       // Add other properties as needed
       status: worker.status,
-      isavailable: worker.isavailable
+      isavailable: worker.isavailable,
+      rating: worker.rating
     }));
     res.json(workersData);
   } catch (error) {
@@ -905,7 +921,7 @@ app.post('/workerlogin',[
           name: user.name,
           status: 'online',
           role: user.role,
-          token: token,
+          //token: token,
           // Add other user details if needed
         }
       });
@@ -947,8 +963,9 @@ app.post('/logout', async (req, res) => {
     // Always clear the cookie
     res.clearCookie('token', {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'strict',
+      domain: process.env.NODE_ENV === "production" ? '.taskify.co.za' : undefined,
     }).json({ msg: 'Logout Successful' });
   }
 });
@@ -1194,13 +1211,128 @@ app.get('/tasks/:clientId/in-progress-count', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch in-progress task count' });
     }
 });
+app.post('/tasks/:taskId/rate', authenticateToken, async (req, res) => {
+    const { taskId } = req.params;
+    const { rating, comments } = req.body;
+    const { id: userId } = req.user; // Assuming user ID is in the token
+
+    try {
+        // 1. Find the task and check if the user is authorized to rate it
+        const task = await db('task').where({ task_id: taskId, client_id: userId }).first();
+
+        if (!task) {
+            return res.status(404).json({ msg: 'Task not found or you are not authorized to rate it.' });
+        }
+        
+        // Prevent re-rating
+        if (task.rating !== null) {
+            return res.status(400).json({ msg: 'This task has already been rated.' });
+        }
+
+        // 2. Update the task with the new rating and comments
+        await db('task')
+            .where({ task_id: taskId })
+            .update({
+                rating: rating,
+                comments: comments,
+            });
+        
+        const freelancerId = task.freelancer_id;
+        if (!freelancerId) {
+             // Handle case where there is no freelancer associated, although this should not happen for a completed task
+            return res.json({ success: true, msg: "Rating submitted successfully." });
+        }
+
+        // 3. Recalculate freelancer's average rating
+        const result = await db('task')
+            .where({ freelancer_id: freelancerId })
+            .andWhereNotNull('rating')
+            .avg('rating as averageRating')
+            .first();
+
+        const newAverageRating = result.averageRating ? parseFloat(result.averageRating).toFixed(2) : 0;
+
+        // 4. Update the freelancer's rating
+        await db('freelancers')
+            .where({ id: freelancerId })
+            .update({ rating: newAverageRating });
+
+        // 5. Emit real-time updates
+        io.emit('new_rating', {
+            freelancerId,
+            newAverageRating,
+        });
+
+        // Also fetch the new comment to broadcast
+         const ratedTask = await db('task')
+            .select(
+                'task.comments',
+                'user_info.name as user_name'
+             )
+            .join('user_info', 'task.client_id', 'user_info.id')
+            .where('task.task_id', taskId)
+            .first();
+            
+        io.emit('new_comment', {
+            freelancerId: freelancerId,
+            comment: ratedTask.comments,
+            userName: ratedTask.user_name,
+        });
+
+
+        res.json({ success: true, msg: "Rating submitted successfully." });
+
+    } catch (error) {
+        console.error('Error submitting rating:', error);
+        res.status(500).json({ success: false, msg: "An error occurred while submitting the rating." });
+    }
+});
+
+app.get('/freelancers/:freelancerId/comments', async (req, res) => {
+    const { freelancerId } = req.params;
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * limit;
+
+    try {
+        const comments = await db('task')
+            .select(
+                'task.comments',
+                'task.rating',
+                'user_info.name as user_name',
+                'task.created_at'
+            )
+            .join('user_info', 'task.client_id', 'user_info.id')
+            .where({ 'task.freelancer_id': freelancerId })
+            .andWhereNotNull('task.comments')
+            .orderBy('task.created_at', 'desc')
+            .limit(limit)
+            .offset(offset);
+        
+        const totalComments = await db('task')
+            .where({ freelancer_id: freelancerId })
+            .andWhereNotNull('comments')
+            .count('task_id as count')
+            .first();
+
+        res.json({
+            comments,
+            total: totalComments.count,
+            page: Number(page),
+            limit: Number(limit)
+        });
+
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({ msg: 'An error occurred while fetching comments.' });
+    }
+});
 
 app.get('/history/:userType/:userId', async (req, res) => {
     const { userType, userId } = req.params;
     try {
         let query = db('history');
         if (userType === 'client') {
-            query = query.where({ user_id: userId }).join('freelancers', 'history.freelancer_id', 'freelancers.id').select('history.*', 'freelancers.name as freelancer_name');
+            query = query.where({ user_id: userId }).join('freelancers', 'history.freelancer_id', 'freelancers.id').select('history.*', 'freelancers.name as freelancer_name', 'freelancers.images as freelancer_image');
         } else if (userType === 'freelancer') {
             query = query.where({ freelancer_id: userId }).join('user_info', 'history.user_id', 'user_info.id').select('history.*', 'user_info.name as user_name');
         }

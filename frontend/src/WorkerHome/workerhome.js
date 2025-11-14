@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Axios from 'axios';
+import { useEffect, useState } from 'react';
 import '../WorkerHome/workerhome.css';
-import Sidebar from '../Components/SideBar/sidebar';
 import MapComponent from '../Components/MapComponent/testmap';
 
 const FreelancerLocationTracker = () => {
@@ -41,7 +39,6 @@ const FreelancerLocationTracker = () => {
 
   return (
     <div>
-      <Sidebar />
       <input
         type="text"
         placeholder="Search for service"
