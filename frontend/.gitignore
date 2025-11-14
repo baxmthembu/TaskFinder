@@ -9,7 +9,13 @@
 /coverage
 
 # production
-
+# production
+.env
+node_modules
+node_modules/
+.cache/
+.gh-pages/
+*.log
 
 # misc
 .DS_Store
