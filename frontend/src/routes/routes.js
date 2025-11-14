@@ -110,7 +110,7 @@ export default Routes*/
 
 // routes.js
 import { RouterProvider, createHashRouter, Navigate} from "react-router-dom";
-import { useAuth } from "./../provider/Authprovider";
+import { useAuth } from "../provider/authProvider.js";
 import Home from "../Components/Home/home";
 import ServiceRequestForm from "../Components/ServiceRequestForm/service_form";
 import FreelancerLocationTracker from "../WorkerHome/workerhome";

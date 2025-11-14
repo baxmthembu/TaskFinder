@@ -1,6 +1,6 @@
 import classes from './NavBar.module.css';
 import {Link, useResolvedPath, useMatch, useNavigate} from 'react-router-dom'
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 
 const logo1 = require("../Images/logo.png")
 

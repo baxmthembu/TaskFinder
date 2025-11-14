@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import styles from './map.module.css';
 import StarRating from '../StarRating/StarRating';
 import io from 'socket.io-client';
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 //import ChatWidget from '../../ChatWidget';
 
 //const socket = io('http://localhost:3001');

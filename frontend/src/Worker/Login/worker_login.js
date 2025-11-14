@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { toast, Bounce } from "react-toastify";
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, Navigate } from "react-router-dom";
-import { useAuth } from "./../../provider/Authprovider";
+import { useAuth } from "../../provider/authProvider";
 import logo from "../../Components/Images/taskaroo.svg"
 
 

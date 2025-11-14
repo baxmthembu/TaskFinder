@@ -11,7 +11,7 @@ import MapComponent from '../MapComponent/testmap';
 import Axios from 'axios';
 import Logout from '../../Worker/Logout/logout';
 import ChatWidget from '../../ChatWidget';
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 import History from '../History/History';
 import PayPal from '../Paypal/paypal';
 import { Tooltip } from 'react-tooltip'

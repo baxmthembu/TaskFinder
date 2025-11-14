@@ -39,7 +39,7 @@ const Logout = () => {
   export default Logout*/
 
 // Logout.js
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 import { useNavigate } from 'react-router-dom';
 import './logout.css';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid'

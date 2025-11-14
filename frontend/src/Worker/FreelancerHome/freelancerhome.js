@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import './freelancerhome.css';
 import FreelancerMap from '../FreelancerMap/freelancermap';
 import socket from '../../socket';
-import { useAuth } from '../../provider/Authprovider';
+import { useAuth } from '../../provider/authProvider';
 import logo from '../../Components/Images/taskaroo.svg'
 import Logout from '../Logout/logout';
 import ChatWidget from '../../ChatWidget';
