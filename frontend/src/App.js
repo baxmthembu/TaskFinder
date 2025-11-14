@@ -1,4 +1,4 @@
-import {AuthProvider} from "./provider/Authprovider.js"
+import { AuthProvider } from "./provider/Authprovider.js";
 import Routes from "./routes/routes";
 import './App.css'
 import ClearStorage from "./Components/ClearStorage/clear_storage";
