@@ -13,7 +13,7 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
         if (isOpen && freelancerId) {
             fetchComments();
         }
-    }, [isOpen, freelancerId, page, fetchComments]);
+    }, [isOpen, freelancerId, page]);
 
     const fetchComments = async () => {
         setLoading(true);

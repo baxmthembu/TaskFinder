@@ -154,10 +154,10 @@ const handleSelectConversation = (conversation) => {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}`);
       const data = await response.json();
       setConversations(data);
-      
+
       // Fetch unread counts after loading conversations
       await fetchUnreadCounts();
-      
+
       // If there's no selected conversation, select the first one
       if (data.length > 0 && !selectedConversation) {
         setSelectedConversation(data[0]);
@@ -172,7 +172,7 @@ const handleSelectConversation = (conversation) => {
   };
 
   fetchConversations();
-}, [currentUser.id]);
+}, [currentUser.id, fetchUnreadCounts, selectedConversation]);
 
 // FIXED: Improved message reception handling
 useEffect(() => {
@@ -251,7 +251,7 @@ useEffect(() => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleRefresh]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
