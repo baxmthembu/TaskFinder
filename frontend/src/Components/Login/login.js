@@ -4,7 +4,7 @@ import { toast, Bounce } from "react-toastify";
 import ReCAPTCHA from 'react-google-recaptcha';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from "../../provider/Authprovider.js";
+import { useAuth } from "../../provider/Authprovider";
 import logo from '../Images/taskaroo.svg'
 
 const Login = () => {

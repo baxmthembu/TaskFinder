@@ -1,6 +1,6 @@
 /*import { RouterProvider, createBrowserRouter, createHashRouter } from "react-router-dom";
 import { useContext, useNavigate, useState, useEffect, Children } from "react";
-import { useAuth } from "./../provider/Authprovider.js";
+import { useAuth } from "./../provider/Authprovider";
 import { ProtectedRoute } from "./ProtectedRoutes";
 //import SearchBar from "../Components/SearchBar/searchbar";
 import Home from "../Components/Home/home";
@@ -110,7 +110,7 @@ export default Routes*/
 
 // routes.js
 import { RouterProvider, createHashRouter, Navigate} from "react-router-dom";
-import { useAuth } from "./../provider/Authprovider.js";
+import { useAuth } from "./../provider/Authprovider";
 import Home from "../Components/Home/home";
 import ServiceRequestForm from "../Components/ServiceRequestForm/service_form";
 import FreelancerLocationTracker from "../WorkerHome/workerhome";
