@@ -9,12 +9,6 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
     const [total, setTotal] = useState(0);
     const limit = 5;
 
-    useEffect(() => {
-        if (isOpen && freelancerId) {
-            fetchComments();
-        }
-    }, [isOpen, freelancerId, page, fetchComments]);
-
     const fetchComments = useCallback(async () => {
         setLoading(true);
         try {
@@ -32,6 +26,12 @@ const CommentsModal = ({ isOpen, onClose, freelancerId }) => {
             setLoading(false);
         }
     }, [freelancerId, page, limit]);
+
+    useEffect(() => {
+        if (isOpen && freelancerId) {
+            fetchComments();
+        }
+    }, [isOpen, freelancerId, page, fetchComments]);
     
     if (!isOpen) return null;
 
