@@ -12,6 +12,7 @@ function App(){
         <ToastContainer />
         <Routes />
     </AuthProvider>
+    /*new*/
   )
 }
 
