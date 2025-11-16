@@ -153,7 +153,7 @@ const ProceedLogin = async (e) => {
         
             <div className="mb-6">
               <ReCAPTCHA
-                sitekey="6Lc3CKYnAAAAAHjblBln1V7QStAE_H6kD5tYuMPl"
+                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
                 onChange={handleCaptchaChange}
                 className="flex justify-center"
               />
@@ -263,7 +263,7 @@ const ProceedLogin = async (e) => {
         {/* reCAPTCHA */}
         <div className="mb-6 flex justify-center">
           <ReCAPTCHA
-            sitekey="6Lc3CKYnAAAAAHjblBln1V7QStAE_H6kD5tYuMPl"
+            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
             onChange={handleCaptchaChange}
           />
         </div>
