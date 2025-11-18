@@ -9,7 +9,6 @@ import logo from "../../Components/Images/taskaroo.svg"
 const WorkerLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { worker_login, user } = useAuth()
-    const [captchaToken, setCaptchaToken] = useState(null);
 
     const [formData, setFormData]= useState({
         name: '',
@@ -35,13 +34,8 @@ const WorkerLogin = () => {
 
       try {
         if (validate()) {
-          if (!captchaToken) {
-            toast.error('Please complete the reCAPTCHA verification');
-            setIsLoading(false);
-            return;
-          }
           
-          const credentials = { ...formData, captchaToken };
+          const credentials = { ...formData };
          
           const result = await worker_login(credentials);
          
@@ -245,12 +239,8 @@ const WorkerLogin = () => {
         <div className="button-container mb-6">
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              captchaToken
-                ? 'bg-teal-500 hover:bg-emerald-500 text-white shadow-md shadow-teal-200'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            disabled={!captchaToken || isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 `}
+            disabled={isLoading}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

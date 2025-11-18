@@ -7,7 +7,6 @@ import { useAuth } from "../../provider/authProvider";
 import logo from '../Images/taskaroo.svg'
 
 const Login = () => {
-  const [captchaToken, setCaptchaToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const {login, user} = useAuth()
   const [ , setUserLocation] = useState({ latitude: null, longitude: null });
@@ -43,14 +42,9 @@ const ProceedLogin = async (e) => {
 
     try {
       if (validate()) {
-        if (!captchaToken) {
-          toast.error('Please complete the reCAPTCHA verification');
-          setIsLoading(false);
-          return;
-        }
         
         const location = await getLocation();
-        const credentials = { ...formData, ...location, captchaToken };
+        const credentials = { ...formData, ...location };
          
         const result = await login(credentials);
          
@@ -265,12 +259,8 @@ const ProceedLogin = async (e) => {
         <div className="button-container mb-6">
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              captchaToken
-                ? 'bg-teal-500 hover:bg-emerald-500 text-white shadow-md shadow-teal-200'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            disabled={!captchaToken || isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 `}
+            disabled={isLoading}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
