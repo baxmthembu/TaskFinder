@@ -51,9 +51,20 @@ const WorkerLogin = () => {
            
             // Redirect based on user role
           } else {
-            toast.error(result.error || 'Log In Error', {
-              position: toast.POSITION.TOP_CENTER
-            });
+            // Handle specific error types
+            const errorMessage = result.error || result.msg || 'Login failed. Please try again.';
+            
+            // Check if it's a validation error (array of errors)
+            if (result.errors && Array.isArray(result.errors)) {
+              const validationErrors = result.errors.map(err => err.msg).join(', ');
+              toast.error(validationErrors, {
+                position: toast.POSITION.TOP_CENTER
+              });
+            } else {
+              toast.error(errorMessage, {
+                position: toast.POSITION.TOP_CENTER
+              });
+            }
           }
         }
       } catch (error) {

@@ -797,7 +797,7 @@ app.post('/login',[
 
     if (!user) {
       console.log('user not found')
-      return res.status(401).json({ msg: 'Authentication Failed' });
+      return res.status(401).json({ msg: 'Invalid username or password' });
     }
 
     const isPasswordValid = await compare(password, user.password);
@@ -844,7 +844,7 @@ app.post('/login',[
     } else {
       console.log('invalid password')
       // Authentication failed
-      res.status(401).json({ msg: 'Authentication Failed' });
+      res.status(401).json({ msg: 'Invalid username or password' });
     }
   } catch (error) {
     console.error('Error:', error);
@@ -936,7 +936,7 @@ app.post('/workerlogin',[
         }
       });
     } else {
-      res.status(401).json({ msg: 'Invalid Credentials' });
+      res.status(401).json({ msg: 'Invalid name or password' });
     }
   } catch (error) {
     console.error('Login error:', error);
