@@ -1,10 +1,11 @@
 import { io } from 'socket.io-client';
 
-/*const socket = io('http://localhost:3001', {
-  withCredentials: true,
-});*/
+// Configure socket connection with proper CORS and transport settings
 const socket = io(`${process.env.REACT_APP_API_URL}`, {
   withCredentials: true,
+  transports: ['polling', 'websocket'],
+  timeout: 20000,
+  forceNew: true,
 });
 
 export default socket;
