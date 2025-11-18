@@ -5,7 +5,6 @@ import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from "../../provider/authProvider";
 import logo from '../Images/taskaroo.svg'
-import Recaptcha from '../reCAPTCHA/Recaptcha';
 
 const Login = () => {
   const [captchaToken, setCaptchaToken] = useState(null);
@@ -88,10 +87,6 @@ const ProceedLogin = async (e) => {
       toast.warning('Please Enter Password');
     }
     return result;
-  };
-
-  const handleCaptchaVerify = (token) => {
-    setCaptchaToken(token);
   };
 
   const handleChange = (e) => {
@@ -263,16 +258,6 @@ const ProceedLogin = async (e) => {
             name="password"
             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
             placeholder="Enter your password"
-          />
-        </div>
-
-        {/* reCAPTCHA */}
-        <div className="mb-6 flex justify-center">
-          <Recaptcha
-            siteKey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-            onVerify={handleCaptchaVerify}
-            theme="light"
-            size="normal"
           />
         </div>
 

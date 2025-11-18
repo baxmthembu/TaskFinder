@@ -5,7 +5,6 @@ import { toast, Bounce } from "react-toastify";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../../provider/authProvider";
 import logo from "../../Components/Images/taskaroo.svg"
-import Recaptcha from "../../Components/reCAPTCHA/Recaptcha";
 
 const WorkerLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -73,10 +72,6 @@ const WorkerLogin = () => {
         const { name, value } = e.target;
         setFormData({...formData, [name]: value});
       }
-
-    const handleCaptchaVerify = (token) => {
-        setCaptchaToken(token);
-    }
         
   useEffect(() => {
     if (user && user.role === 'freelancer') {
@@ -243,16 +238,6 @@ const WorkerLogin = () => {
             name="password"
             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
             placeholder="Enter your password"
-          />
-        </div>
-
-        {/* ReCAPTCHA*/}
-        <div className="mb-6 flex justify-center">
-          <Recaptcha
-            siteKey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-            onVerify={handleCaptchaVerify}
-            theme="light"
-            size="normal"
           />
         </div>
 
