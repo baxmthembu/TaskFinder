@@ -5,7 +5,7 @@ import { toast, Bounce } from "react-toastify";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../../provider/authProvider";
 import logo from "../../Components/Images/taskaroo.svg"
-import Recaptcha from '../../reCAPTCHA/Recaptcha';
+import Recaptcha from "../../Components/reCAPTCHA/Recaptcha";
 
 const WorkerLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
