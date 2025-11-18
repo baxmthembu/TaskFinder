@@ -2,16 +2,15 @@ import {useState, useEffect} from "react";
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, Bounce } from "react-toastify";
-import ReCAPTCHA from 'react-google-recaptcha';
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../../provider/authProvider";
 import logo from "../../Components/Images/taskaroo.svg"
-
+import Recaptcha from '../../reCAPTCHA/Recaptcha';
 
 const WorkerLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { worker_login, user } = useAuth()
-    const [captchaValue, setCaptchaValue] = useState('');
+    const [captchaToken, setCaptchaToken] = useState(null);
 
     const [formData, setFormData]= useState({
         name: '',
@@ -37,15 +36,21 @@ const WorkerLogin = () => {
 
       try {
         if (validate()) {
-          const credentials = { ...formData};
-        
+          if (!captchaToken) {
+            toast.error('Please complete the reCAPTCHA verification');
+            setIsLoading(false);
+            return;
+          }
+          
+          const credentials = { ...formData, captchaToken };
+         
           const result = await worker_login(credentials);
-        
+         
           if (result.success) {
             toast.success(`Welcome ${result.user.name}`, {
               position: toast.POSITION.TOP_CENTER
             });
-          
+           
             // Redirect based on user role
           } else {
             toast.error(result.error || 'Log In Error', {
@@ -69,8 +74,8 @@ const WorkerLogin = () => {
         setFormData({...formData, [name]: value});
       }
 
-    const handleCaptchaChange = (value) => {
-        setCaptchaValue(value);
+    const handleCaptchaVerify = (token) => {
+        setCaptchaToken(token);
     }
         
   useEffect(() => {
@@ -241,11 +246,13 @@ const WorkerLogin = () => {
           />
         </div>
 
-        {/* ReCAPTCHA*/} 
+        {/* ReCAPTCHA*/}
         <div className="mb-6 flex justify-center">
-          <ReCAPTCHA
-            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-            onChange={handleCaptchaChange}
+          <Recaptcha
+            siteKey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+            onVerify={handleCaptchaVerify}
+            theme="light"
+            size="normal"
           />
         </div>
 
@@ -254,11 +261,11 @@ const WorkerLogin = () => {
           <button
             type="submit"
             className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              captchaValue
+              captchaToken
                 ? 'bg-teal-500 hover:bg-emerald-500 text-white shadow-md shadow-teal-200'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            disabled={!captchaValue || isLoading}
+            disabled={!captchaToken || isLoading}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">

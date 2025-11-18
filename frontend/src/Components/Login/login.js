@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast, Bounce } from "react-toastify";
-import ReCAPTCHA from 'react-google-recaptcha';
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from "../../provider/authProvider";
 import logo from '../Images/taskaroo.svg'
+import Recaptcha from '../reCAPTCHA/Recaptcha';
 
 const Login = () => {
-  const [captchaValue, setCaptchaValue] = useState('');
+  const [captchaToken, setCaptchaToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const {login, user} = useAuth()
   const [ , setUserLocation] = useState({ latitude: null, longitude: null });
@@ -44,16 +44,22 @@ const ProceedLogin = async (e) => {
 
     try {
       if (validate()) {
+        if (!captchaToken) {
+          toast.error('Please complete the reCAPTCHA verification');
+          setIsLoading(false);
+          return;
+        }
+        
         const location = await getLocation();
-        const credentials = { ...formData, ...location };
-        
+        const credentials = { ...formData, ...location, captchaToken };
+         
         const result = await login(credentials);
-        
+         
         if (result.success) {
           toast.success(`Welcome ${result.user.name}`, {
             position: toast.POSITION.TOP_CENTER
           });
-          
+           
           // Redirect based on user role
         } else {
           toast.error(result.error || 'Log In Error', {
@@ -84,8 +90,8 @@ const ProceedLogin = async (e) => {
     return result;
   };
 
-  const handleCaptchaChange = (value) => {
-    setCaptchaValue(value);
+  const handleCaptchaVerify = (token) => {
+    setCaptchaToken(token);
   };
 
   const handleChange = (e) => {
@@ -262,9 +268,11 @@ const ProceedLogin = async (e) => {
 
         {/* reCAPTCHA */}
         <div className="mb-6 flex justify-center">
-          <ReCAPTCHA
-            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-            onChange={handleCaptchaChange}
+          <Recaptcha
+            siteKey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+            onVerify={handleCaptchaVerify}
+            theme="light"
+            size="normal"
           />
         </div>
 
@@ -273,11 +281,11 @@ const ProceedLogin = async (e) => {
           <button
             type="submit"
             className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              captchaValue
+              captchaToken
                 ? 'bg-teal-500 hover:bg-emerald-500 text-white shadow-md shadow-teal-200'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            disabled={!captchaValue || isLoading}
+            disabled={!captchaToken || isLoading}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
