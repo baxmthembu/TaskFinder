@@ -35,7 +35,12 @@ const rateLimit = require('express-rate-limit');
 
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", 'https://baxmthembu.github.io'],
+    origin: [
+      "http://localhost:3000",
+      "https://baxmthembu.github.io",
+      "https://taskify.co.za",
+      "https://www.taskify.co.za"
+    ],
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -423,8 +428,13 @@ socket.on('leave_room', (room) => {
 app.use(json());
 app.use(urlencoded({ extended: false }));
 app.use(cors({
-  origin: 'https://taskify.co.za',//["http://localhost:3000", 'https://baxmthembu.github.io'],
-  //methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: [
+    'http://localhost:3000',
+    'https://baxmthembu.github.io',
+    'https://taskify.co.za',
+    'https://www.taskify.co.za'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   exposedHeaders: ['Set-Cookie']
 }));
