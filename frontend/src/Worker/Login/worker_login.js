@@ -241,7 +241,7 @@ const WorkerLogin = () => {
           />
         </div>
 
-        {/* ReCAPTCHA */}
+        {/* ReCAPTCHA*/} 
         <div className="mb-6 flex justify-center">
           <ReCAPTCHA
             sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
