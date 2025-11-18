@@ -27,6 +27,11 @@ const WorkerLogin = () => {
         }
             return result;
     }
+
+    // Check if form is valid (all fields filled)
+    const isFormValid = () => {
+        return formData.name.trim() !== '' && formData.password.trim() !== '';
+    }
     
     const Login = async (e) => {
       e.preventDefault();
@@ -239,8 +244,12 @@ const WorkerLogin = () => {
         <div className="button-container mb-6">
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 `}
-            disabled={isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
+              isFormValid()
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            disabled={isLoading || !isFormValid()}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
