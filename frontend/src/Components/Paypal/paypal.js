@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import ManualEFT from './ManualEFT';
 
 const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState('eft');
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
@@ -9,7 +10,7 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
   const handlePayment = () => {
     if (paymentMethod === 'cash') {
       onPaymentSuccess('Cash Payment');
-    } else {
+    } else if (paymentMethod === 'card') {
       if (cardNumber && expiryDate && cvv) {
         onPaymentSuccess('Credit/Debit Card Payment');
       } else {
@@ -27,59 +28,70 @@ const PayPal = ({ amount, onPaymentSuccess, onPaymentCancel }) => {
       <p className="text-2xl font-bold text-center text-gray-900 my-4">Pay R{amount}</p>
       <div className="flex justify-center space-x-2 sm:space-x-4 mb-6">
         <button
-          className={`${buttonBaseClasses} ${paymentMethod === 'cash' ? activeClasses : inactiveClasses}`}
-          onClick={() => setPaymentMethod('cash')}
+          className={`${buttonBaseClasses} ${paymentMethod === 'eft' ? activeClasses : inactiveClasses}`}
+          onClick={() => setPaymentMethod('eft')}
         >
-          Cash
+          EFT
         </button>
         <button
           className={`${buttonBaseClasses} ${paymentMethod === 'card' ? activeClasses : inactiveClasses}`}
           onClick={() => setPaymentMethod('card')}
         >
-          Credit/Debit Card
+          Card
         </button>
       </div>
-      {paymentMethod === 'card' && (
-        <div className="space-y-4 mb-6">
-          <input
-            type="text"
-            placeholder="Card Number"
-            value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="flex space-x-4">
-            <input
-              type="text"
-              placeholder="Expiry Date (MM/YY)"
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="CVV"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value)}
-              className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+
+      {paymentMethod === 'eft' ? (
+        <ManualEFT
+          amount={amount}
+          onPaymentSuccess={onPaymentSuccess}
+          onPaymentCancel={onPaymentCancel}
+        />
+      ) : (
+        <>
+          {paymentMethod === 'card' && (
+            <div className="space-y-4 mb-6">
+              <input
+                type="text"
+                placeholder="Card Number"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex space-x-4">
+                <input
+                  type="text"
+                  placeholder="Expiry Date (MM/YY)"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="text"
+                  placeholder="CVV"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value)}
+                  className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+          <div className="space-y-3">
+            <button
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300"
+              onClick={handlePayment}
+            >
+              Pay Now
+            </button>
+            <button
+              className="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300"
+              onClick={onPaymentCancel}
+            >
+              Cancel
+            </button>
           </div>
-        </div>
+        </>
       )}
-      <div className="space-y-3">
-        <button 
-          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300"
-          onClick={handlePayment}
-        >
-          Pay Now
-        </button>
-        <button
-          className="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300"
-          onClick={onPaymentCancel}
-        >
-          Cancel
-        </button>
-      </div>
     </div>
   );
 };

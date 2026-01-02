@@ -1,32 +1,24 @@
 const express = require('express');
-const fs = require('fs');
+require('dotenv').config();
 const multer = require('multer');
 const {v2: cloudinary} = require('cloudinary');
-const {Pool} = require('pg');
 const app = express();
-const bodyParser = require('body-parser');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 const cors = require('cors');
 const knex = require('knex');
-require('dotenv').config();
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-const path = require('path');
 const { json, urlencoded } = require('express');
-const { diskStorage } = require('multer');
 const { hash, compare } = require('bcrypt');
-const { extname } = require('path');
-const crypto = require('crypto');
-const secret = crypto.randomBytes(64).toString('hex');
-//console.log(secret);
-const session = require('express-session');
-const passport = require('passport');
 const http = require('http')
 const socketIo = require('socket.io')
 const server = http.createServer(app)
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser');
 const { check, validationResult } = require('express-validator');
-const { error } = require('console');
 const connectedUsers = new Map();
 const userRooms = new Map();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -48,12 +40,6 @@ const io = socketIo(server, {
   pingTimeout: 5000,
   cookie: false
 });
-
-const validateRoomName = (room) => {
-  const parts = room.split('-');
-  if (parts.length !== 2) return false;
-  return parts.every(id => typeof id === 'string' && id.length > 0);
-};
 
 const updateFreelancerAvailability = async (freelancerId, isAvailable) => {
   try {
@@ -441,7 +427,6 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.static('public'));
 app.use(express.json());
-app.use('/chat-images', express.static('public/chat-images'));
 
 /*new*/
 app.use('/uploads', express.static('public/uploads', {
@@ -454,43 +439,6 @@ app.use('/uploads', express.static('public/uploads', {
   }
 }));
 
-setInterval(() => {
-  fs.readdir('public/chat-images', (err, files) => {
-    if (err) {
-      console.error("Failed to read chat-images directory:", err);
-      return;
-    }
-    files.forEach(file => {
-      if (!file.startsWith('compressed-')) {
-        const filePath = path.join('public/chat-images', file);
-        fs.stat(filePath, (statErr, stat) => {
-          if (statErr) {
-            console.error(`Failed to get stats for file ${filePath}:`, statErr);
-            return;
-          }
-          if (Date.now() - stat.mtimeMs > 24 * 60 * 60 * 1000) {
-            fs.unlink(filePath, (unlinkErr) => {
-              if (unlinkErr) {
-                console.error(`Failed to delete file ${filePath}:`, unlinkErr);
-              }
-            });
-          }
-        });
-      }
-    });
-  });
-}, 24 * 60 * 60 * 1000); // Run daily
-
-/*const db = knex({
-  client: 'pg',
-  connection: {
-      host: process.env.DATABASE_HOST,
-      user: process.env.DATABASE_USERNAME,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE,
-  },
-});*/
-
 const db = knex({
   client: 'pg',
   connection: {
@@ -499,34 +447,11 @@ const db = knex({
   },
 });
 
-
-
 console.log('Using DATABASE_URL:', process.env.DATABASE_URL);
 
-
-const storage = diskStorage({
-  destination: (req,file,cb) => {
-    cb(null, 'public/images')
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname))
-  }
-})
-
-const upload = multer({
-  storage: storage
-})
-
-const chatImageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/chat-images');
-  },
-  filename: (req, file, cb) => {
-    cb(null, 'chat_' + Date.now() + path.extname(file.originalname));
-  }
-});
-
-const uploadChatImage = multer({ storage: chatImageStorage });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+const uploadChatImage = multer({ storage: storage });
 
 //loginLimiter helps protect against abuse such as brute force attacks or excessive API requests
 const loginLimiter = rateLimit({
@@ -588,50 +513,65 @@ app.post('/register', async (req, res) => {
      console.log('Registration successful');
      return res.json({ msg: 'Registration successful' });
    } catch (error) {
+     if (error.code === '23505') {
+        if (error.detail.includes('email')) return res.status(409).json({ field: 'email', msg: 'Email already exists' });
+        if (error.detail.includes('phone')) return res.status(409).json({ field: 'phone', msg: 'Phone number already exists' });
+        if (error.detail.includes('username')) return res.status(409).json({ field: 'username', msg: 'Username already exists' });
+     }
      console.error('Error:', error);
      return res.status(500).json({ msg: 'An error occurred' });
    }
 })
 
-app.post('/registerWorker',upload.single('images'), async (req, res) => {
-  const {name,surname,password,email,phone,occupation,latitude,longitude} = req.body;
-  const images = /*req.file ? req.file.filename:null;*/ req.file.filename;
+app.post('/registerWorker', upload.single('images'), async (req, res) => {
+  const { name, surname, password, email, phone, occupation, latitude, longitude } = req.body;
 
   if (!password || password.trim() === '') {
     return res.status(400).json({ msg: 'Password is required' });
   }
 
-  try{
-    const hashedPassword = await hash(password, 10); // 10 is the number of salt rounds
+  if (!req.file) {
+    return res.status(400).json({ msg: 'No image selected' });
+  }
 
-    if (!req.file) {
-      // No image was provided
-      return res.status(400).json({ msg: 'No image selected' });
-    }
+  try {
+    const hashedPassword = await hash(password, 10);
 
+    // Upload to Cloudinary
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'freelancers',
+      resource_type: 'auto'
+    });
 
     await db('freelancers').insert({
       name: name,
       surname: surname,
-      password: hashedPassword, // Store the hashed password
+      password: hashedPassword,
       email: email,
       phone: phone,
       occupation: occupation,
       latitude: latitude,
       longitude: longitude,
-      images: images,
+      images: result.secure_url, // Store Cloudinary URL
       status: 'offline',
       role: 'freelancer',
       isavailable: false
     });
 
     console.log('Registration successful');
-     return res.json({ msg: 'Registration successful' })
-    }catch (error) {
-     console.error('Error:', error);
-     return res.status(500).json({ msg: 'An error occurred' });
-    }
-})
+    return res.json({ msg: 'Registration successful' });
+  } catch (error) {
+    if (error.code === '23505') {
+        if (error.detail.includes('email')) return res.status(409).json({ field: 'email', msg: 'Email already exists' });
+        if (error.detail.includes('phone')) return res.status(409).json({ field: 'phone', msg: 'Phone number already exists' });
+     }
+    console.error('Error:', error);
+    return res.status(500).json({ msg: 'An error occurred' });
+  }
+});
 
 app.post('/imageupload', async(req,res) => {
   const {cloudinary_url} = req.body
@@ -684,7 +624,7 @@ app.get('/workers', async (req, res) => {
       occupation: worker.occupation,
       latitude: worker.latitude,
       longitude: worker.longitude,
-      images: worker.images.toString('base64'), // Convert Buffer to base64 if 'image' is a Buffer
+      images: worker.images, // Cloudinary URL
       // Add other properties as needed
       status: worker.status,
       isavailable: worker.isavailable,
@@ -797,7 +737,7 @@ app.post('/login',[
 
     if (!user) {
       console.log('user not found')
-      return res.status(401).json({ msg: 'Invalid username or password' });
+      return res.status(401).json({ field: 'username', msg: 'Username not found' });
     }
 
     const isPasswordValid = await compare(password, user.password);
@@ -844,7 +784,7 @@ app.post('/login',[
     } else {
       console.log('invalid password')
       // Authentication failed
-      res.status(401).json({ msg: 'Invalid username or password' });
+      res.status(401).json({ field: 'password', msg: 'Incorrect password' });
     }
   } catch (error) {
     console.error('Error:', error);
@@ -902,6 +842,10 @@ app.post('/workerlogin',[
       .select('id','name','password','role')
       .where('name', name) // Simplified for demo purposes, use hashed passwords in production
       .first();
+
+      if(!user){
+        return res.status(401).json({field: 'name', msg: 'Username not found'})
+      }
       
 
     const isPasswordValid = await compare(password, user.password);
@@ -936,7 +880,7 @@ app.post('/workerlogin',[
         }
       });
     } else {
-      res.status(401).json({ msg: 'Invalid name or password' });
+      res.status(401).json({ field: 'password', msg: 'Incorrect password' });
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -1178,26 +1122,84 @@ app.post('/tasks/:taskId/complete', async (req, res) => {
 
 app.post('/tasks/:taskId/pay', async (req, res) => {
     const { taskId } = req.params;
-    const { clientId } = req.body;
+    const { clientId, paymentMethod, reference } = req.body;
+    
     try {
-        await db('task').where({ task_id: taskId }).update({ status: 'paid' });
+        // Start a transaction to ensure data integrity
+        await db.transaction(async (trx) => {
+            // 1. Update task status
+            await trx('task').where({ task_id: taskId }).update({ status: 'paid' });
 
-        const task = await db('task').where({ task_id: taskId }).first();
-        const user = await db('user_info').where({ id: clientId }).first();
+            const task = await trx('task').where({ task_id: taskId }).first();
+            const user = await trx('user_info').where({ id: clientId }).first();
+            
+            // Calculate split (e.g., 30% platform fee)
+            const totalAmount = parseFloat(task.price_per_hour);
+            const platformFee = totalAmount * 0.30;
+            const freelancerAmount = totalAmount - platformFee;
 
-        await db('payment').insert({
-            task_id: taskId,
-            user_id: user.id,
-            amount: task.price_per_hour,
-        });
+            // 2. Record the payment in the new 'payments' table
+            const [paymentId] = await trx('payments').insert({
+                task_id: taskId,
+                client_id: user.id,
+                amount_total: totalAmount,
+                platform_fee: platformFee,
+                freelancer_amount: freelancerAmount,
+                currency: 'ZAR',
+                status: 'completed', // Assuming immediate success for manual EFT confirmation
+                provider_ref: reference || `MANUAL-${Date.now()}`,
+                created_at: new Date(),
+                updated_at: new Date()
+            }).returning('id');
 
-        await db('history').insert({
-            task_id: taskId,
-            user_id: user.id,
-            freelancer_id: task.freelancer_id,
-            task_title: task.description,
-            date_finished: new Date(),
-            amount: task.price_per_hour,
+            // 3. Update Freelancer Wallet
+            // Check if wallet exists, if not create it
+            let wallet = await trx('freelancer_wallets').where({ freelancer_id: task.freelancer_id }).first();
+            
+            if (!wallet) {
+                [wallet] = await trx('freelancer_wallets').insert({
+                    freelancer_id: task.freelancer_id,
+                    available_balance: 0.00,
+                    pending_balance: 0.00,
+                    total_earnings: 0.00
+                }).returning('*');
+            }
+
+            // Update wallet balances
+            // Note: For now, we move it directly to available_balance since the task is already finished
+            // In a stricter flow, it might go to pending first, then released.
+            const newAvailableBalance = parseFloat(wallet.available_balance) + freelancerAmount;
+            const newTotalEarnings = parseFloat(wallet.total_earnings) + freelancerAmount;
+
+            await trx('freelancer_wallets')
+                .where({ id: wallet.id })
+                .update({
+                    available_balance: newAvailableBalance,
+                    total_earnings: newTotalEarnings,
+                    updated_at: new Date()
+                });
+
+            // 4. Create Wallet Transaction Audit Log
+            await trx('wallet_transactions').insert({
+                wallet_id: wallet.id,
+                type: 'earning',
+                amount: freelancerAmount,
+                balance_after: newAvailableBalance,
+                reference_type: 'task',
+                reference_id: taskId,
+                description: `Earnings for task: ${task.description}`,
+                created_at: new Date()
+            });
+
+            // 5. Maintain legacy history table for backward compatibility
+            await trx('history').insert({
+                task_id: taskId,
+                user_id: user.id,
+                freelancer_id: task.freelancer_id,
+                task_title: task.description,
+                date_finished: new Date(),
+                amount: totalAmount,
+            });
         });
 
         io.to(`client-${clientId}`).emit('update_task_counter', { action: 'decrement' });
@@ -1566,11 +1568,19 @@ app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
       is_read: false
     };
 
-    // Handle image upload and location
+    // Handle image upload
     if (req.file) {
+      const b64 = Buffer.from(req.file.buffer).toString('base64');
+      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'chat-images',
+        resource_type: 'auto'
+      });
+
       messageData.message_type = 'image';
       messageData.message = message || 'Shared an image';
-      messageData.image_path = req.file.filename;
+      messageData.image_path = result.secure_url; // Store Cloudinary URL
     }
 
     if (latitude && longitude) {
@@ -1582,6 +1592,15 @@ app.post('/messages', uploadChatImage.single('chatImage'), async (req, res) => {
 
     const [savedMessage] = await db('message').insert(messageData).returning('*');
     
+    // Update chat with last message
+    await db('chat')
+      .where({ id: chat.id })
+      .update({
+        last_message: messageData.message,
+        last_message_time: db.fn.now(),
+        updated_at: db.fn.now()
+      });
+
     // Format the response for Socket.io
     const socketMessage = {
       id: savedMessage.id,
@@ -1742,6 +1761,182 @@ app.get('/api/user-image/:userId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user image:', error);
     res.status(500).json({ error: 'Failed to fetch user image' });
+  }
+});
+
+// --- Bank Details Endpoints ---
+const { encrypt, decrypt, maskAccountNumber } = require('./utils/encryption');
+
+// GET /freelancer/bank-details
+app.get('/freelancer/bank-details', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'freelancer') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  try {
+    const bankAccounts = await db('freelancer_bank_accounts')
+      .where({ freelancer_id: req.user.id, deleted_at: null })
+      .orderBy('is_active', 'desc') // Active first
+      .orderBy('created_at', 'desc');
+
+    const maskedAccounts = bankAccounts.map(account => ({
+      id: account.id,
+      bank_name: account.bank_name,
+      account_holder_name: account.account_holder_name,
+      account_number: maskAccountNumber(decrypt(account.account_number_encrypted)),
+      security_code: account.security_code,
+      valid_thru: account.valid_thru,
+      account_type: account.account_type,
+      is_active: account.is_active,
+      is_verified: account.is_verified,
+      created_at: account.created_at
+    }));
+
+    res.json(maskedAccounts);
+  } catch (error) {
+    console.error('Error fetching bank details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /freelancer/bank-details (Add new bank account)
+app.post('/freelancer/bank-details', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'freelancer') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const { bank_name, account_holder_name, account_number, security_code, valid_thru, account_type } = req.body;
+
+  // Basic validation
+  if (!bank_name || !account_holder_name || !account_number || !security_code || !valid_thru || !account_type) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  if (!/^\d+$/.test(account_number)) {
+    return res.status(400).json({ error: 'Account number must contain only digits' });
+  }
+
+  if (!/^\d{3}$/.test(security_code)) {
+    return res.status(400).json({ error: 'Security code must be a 3-digit number' });
+  }
+
+  if (!/^\d{2}\/\d{2}$/.test(valid_thru)) {
+    return res.status(400).json({ error: 'Valid thru must be in MM/YY format' });
+  }
+
+  try {
+    await db.transaction(async (trx) => {
+      // 1. Deactivate all existing accounts for this freelancer
+      await trx('freelancer_bank_accounts')
+        .where({ freelancer_id: req.user.id })
+        .update({ is_active: false });
+
+      // 2. Insert new active account
+      const [newAccount] = await trx('freelancer_bank_accounts')
+        .insert({
+          freelancer_id: req.user.id,
+          bank_name,
+          account_holder_name,
+          account_number_encrypted: encrypt(account_number),
+          security_code,
+          valid_thru,
+          account_type,
+          is_active: true, // New account is active by default
+          is_verified: false // Pending verification
+        })
+        .returning('*');
+      
+      res.status(201).json({
+        message: 'Bank details added successfully',
+        account: {
+          id: newAccount.id,
+          bank_name: newAccount.bank_name,
+          account_holder_name: newAccount.account_holder_name,
+          account_number: maskAccountNumber(account_number),
+          security_code: newAccount.security_code,
+          valid_thru: newAccount.valid_thru,
+          account_type: newAccount.account_type,
+          is_active: newAccount.is_active,
+          is_verified: newAccount.is_verified
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error adding bank details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /freelancer/bank-details/:id (Soft delete)
+app.delete('/freelancer/bank-details/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'freelancer') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const accountId = req.params.id;
+
+  try {
+    const account = await db('freelancer_bank_accounts')
+      .where({ id: accountId, freelancer_id: req.user.id })
+      .first();
+
+    if (!account) {
+      return res.status(404).json({ error: 'Bank account not found' });
+    }
+
+    if (account.is_active) {
+      return res.status(400).json({ error: 'Cannot delete an active bank account. Please add a new one to replace it.' });
+    }
+
+    await db('freelancer_bank_accounts')
+      .where({ id: accountId })
+      .update({ deleted_at: new Date() });
+
+    res.json({ message: 'Bank account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting bank details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /freelancer/bank-details/:id/activate (Switch active account)
+app.put('/freelancer/bank-details/:id/activate', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'freelancer') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const accountId = req.params.id;
+
+  try {
+    await db.transaction(async (trx) => {
+      // Verify ownership
+      const account = await trx('freelancer_bank_accounts')
+        .where({ id: accountId, freelancer_id: req.user.id, deleted_at: null })
+        .first();
+
+      if (!account) {
+        throw new Error('Bank account not found');
+      }
+
+      // Deactivate all
+      await trx('freelancer_bank_accounts')
+        .where({ freelancer_id: req.user.id })
+        .update({ is_active: false });
+
+      // Activate target
+      await trx('freelancer_bank_accounts')
+        .where({ id: accountId })
+        .update({ is_active: true });
+    });
+
+    res.json({ message: 'Active bank account updated successfully' });
+  } catch (error) {
+    console.error('Error activating bank account:', error);
+    if (error.message === 'Bank account not found') {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 });
 

@@ -1,43 +1,3 @@
-/*import React, {useContext} from 'react';
-import Axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../provider/authProvider';
-import './logout.css'
-import Freelancers from '../freelancerDelete/freelancerDelete';
-
-
-const Logout = () => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-            navigate('/');
-        } catch (error) {
-            console.error('Error logging out:', error);
-            navigate('/');
-        }
-    };
-
-    return (
-        <div style={styles.button}>
-            <button className='button-77' onClick={handleLogout}>Logout</button>
-        </div>
-    );
-};
-
-
-  const styles = {
-    button: {
-        float: 'right',
-        right: '20px',
-        bottom: '1rem'
-    }
-  }
-
-  export default Logout*/
-
 // Logout.js
 import { useAuth } from '../../provider/authProvider';
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +5,7 @@ import './logout.css';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid'
 import { Tooltip } from 'react-tooltip'
 
-const Logout = () => {
+const Logout = ({ isMobile = false }) => {
     const { logout} = useAuth();
     const navigate = useNavigate();
 
@@ -61,14 +21,32 @@ const Logout = () => {
         }
     };
 
-    // Optional: Display different logout message based on user role
-    /*const getLogoutMessage = () => {
-        if (user) {
-            return 'Logout';
-        }
-        return 'Logout';
-    };*/
+    // Mobile-friendly logout content
+    const logoutContent = (
+        <div className="flex items-center space-x-3">
+            <ArrowRightOnRectangleIcon className="h-6 w-6" />
+            {!isMobile && <span>Logout</span>}
+            {isMobile && <span className="font-medium">Sign Out</span>}
+        </div>
+    );
 
+    if (isMobile) {
+        return (
+            <div className="w-full">
+                <button 
+                    onClick={handleLogout}
+                    className="w-full px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg shadow-md transition-colors flex items-center justify-center text-sm font-medium border border-red-200"
+                    data-tooltip-id="logout-tooltip"
+                    data-tooltip-content="Logout"
+                >
+                    {logoutContent}
+                </button>
+                <Tooltip id="logout-tooltip" />
+            </div>
+        );
+    }
+
+    // Desktop version (original)
     return (
       <div className="">
         <button 

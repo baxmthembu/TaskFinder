@@ -12,3 +12,12 @@
     padding: 10px;
     margin-bottom: 10px;
 }
+
+/* Tooltip styling */
+#history-tooltip {
+  width: auto !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}

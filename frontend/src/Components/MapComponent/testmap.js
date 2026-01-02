@@ -2,7 +2,7 @@ import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaf
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import styles from './map.module.css';
+import styles from './map.module.css'
 import StarRating from '../StarRating/StarRating';
 import io from 'socket.io-client';
 import { useAuth } from '../../provider/authProvider';
@@ -38,17 +38,6 @@ const MapComponent = ({
   const {user} = useAuth();
   const [workersData, setWorkersData] = useState([]);
 
-  // Component to handle map view changes
-  /*const ChangeView = ({ center }) => {
-    const map = useMap();
-    useEffect(() => {
-      if (center) {
-        map.setView(center, map.getZoom());
-      }
-    }, [center]);
-    return null;
-  };*/
-
   // Filter workers data
   const filteredWorkers = useMemo(() => {
     return (data || []).filter((value) => {
@@ -72,12 +61,6 @@ const MapComponent = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        /*const response = await fetch('http://localhost:3001/workers', {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        });*/
         const response = await fetch(`${process.env.REACT_APP_API_URL}/workers`, {
           headers: {
             'Content-Type': 'application/json',
@@ -136,7 +119,7 @@ const MapComponent = ({
   // Custom marker icons
   const getMarkerIcon = (imgPath) => {
     return L.icon({
-      iconUrl: /*`http://localhost:3001/images/${imgPath}`*/`${process.env.REACT_APP_API_URL}/images/${imgPath}`,
+      iconUrl: imgPath,
       iconSize: [48, 48],
       iconAnchor: [24, 48],
       popupAnchor: [0, -48]
@@ -205,8 +188,7 @@ const MapComponent = ({
                   {/* ... popup content remains the same ... */}
                   <div className={styles.card_item}>
                     <div className={styles.card_inner}>
-                      {/*<img src={`http://localhost:3001/images/${worker.images}`} alt='avatar' />*/}
-                      <img src={`${process.env.REACT_APP_API_URL}/images/${worker.images}`} alt='avatar' />
+                      <img src={worker.images} alt='avatar' />
                       <div className={styles.userName}>{worker.name} {worker.surname}</div>
                       <div className={styles.userJob}>{worker.occupation}</div>
                       <div className={styles.userStatus}>

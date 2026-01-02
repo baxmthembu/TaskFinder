@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { Tooltip } from 'react-tooltip'
 import PayPal from '../Paypal/paypal';
@@ -47,14 +47,6 @@ const TaskStatus = ({
 
   const handleRatingSubmit = async (taskId, { rating, comments }) => {
     try {
-        /*const response = await fetch(`http://localhost:3001/tasks/${taskId}/rate`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ rating, comments }),
-            credentials: 'include'
-        });*/
         const response = await fetch(`${process.env.REACT_APP_API_URL}/tasks/${taskId}/rate`, {
             method: 'POST',
             headers: {
@@ -125,7 +117,7 @@ const TaskStatus = ({
             )}
         </button>
       {isOpen && (
-        <div className="absolute top-12 left-0 bg-white shadow-lg rounded-lg w-80 z-20">
+        <div className="absolute top-12 left-0 bg-white shadow-lg rounded-lg w-80px z-20">
             <div className="p-4 border-b">
                 <h3 className="text-lg font-semibold">Task Status</h3>
             </div>

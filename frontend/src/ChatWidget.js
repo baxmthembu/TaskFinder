@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaSync, FaPaperclip, FaMapMarkerAlt, FaTimes, FaCamera, FaPlus } from 'react-icons/fa';
 import './ChatWidget.css';
-import io from 'socket.io-client';
+import socket from './socket';
 import PayPal from './Components/Paypal/paypal';
-
-//const socket = io('http://localhost:3001');
-const socket = io.connect('https://taskfinder.onrender.com');
 
 const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineTask }) => {
   const [showPayment, setShowPayment] = useState(false);
@@ -13,12 +10,10 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [, setIsTyping] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const messagesEndRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState(null);
-  const [, setPreview] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -40,9 +35,6 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
 
       // Refresh messages if a conversation is selected
       if (selectedConversation) {
-        /*const msgResponse = await fetch(
-          `http://localhost:3001/chats/${selectedConversation.room_id}/messages`
-        );*/
         const msgResponse = await fetch(
           `${process.env.REACT_APP_API_URL}/chats/${selectedConversation.room_id}/messages`
         );
@@ -53,8 +45,7 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
           room: selectedConversation.room_id,
           timestamp: msg.timestamp || msg.created_at,
           // Ensure image_url is properly set
-          //image_url: msg.image_path ? `http://localhost:3001/chat-images/${msg.image_path}` : null
-          image_url: msg.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${msg.image_path}` : null
+          image_url: msg.image_path
         })));
       }
     } catch (error) {
@@ -67,7 +58,6 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
   // Add this function to fetch initial unread counts
   const fetchUnreadCounts = useCallback(async () => {
     try {
-      //const response = await fetch(`http://localhost:3001/chats/${currentUser.id}/unread-counts`);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}/unread-counts`);
       if (response.ok) {
         const data = await response.json();
@@ -85,7 +75,6 @@ const ChatWidget = ({ currentUser, onClose, room, task, onAcceptTask, onDeclineT
 const fetchMessages = async (roomId) => {
     try {
       setIsLoading(true);
-      //const response = await fetch(`http://localhost:3001/chats/${roomId}/messages`);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${roomId}/messages`);
       if (response.ok) {
         const data = await response.json();
@@ -94,8 +83,7 @@ const fetchMessages = async (roomId) => {
           sender: String(msg.sender || msg.sender_id),
           room: roomId,
           timestamp: msg.timestamp || msg.created_at,
-          //image_url: msg.image_path ? `http://localhost:3001/chat-images/${msg.image_path}` : null
-          image_url: msg.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${msg.image_path}` : null
+          image_url: msg.image_path
         }));
         setMessages(formattedMessages);
         
@@ -113,16 +101,6 @@ const fetchMessages = async (roomId) => {
 
   const markMessagesAsRead = async (roomId) => {
   try {
-    /*const response = await fetch('http://localhost:3001/messages/mark-read', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        roomId,
-        userId: currentUser.id
-      })
-    });*/
     const response = await fetch(`${process.env.REACT_APP_API_URL}/messages/mark-read`, {
       method: 'POST',
       headers: {
@@ -186,7 +164,6 @@ const handleSelectConversation = (conversation) => {
   const fetchConversations = async () => {
     try {
       setIsLoading(true);
-      //const response = await fetch(`http://localhost:3001/chats/${currentUser.id}`);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/chats/${currentUser.id}`);
       const data = await response.json();
       setConversations(data);
@@ -215,6 +192,11 @@ useEffect(() => {
   const handleReceiveMessage = (data) => {
     // Check if message is for the current conversation
     if (data.room === selectedConversation?.room_id) {
+      // Ignore own messages as they are handled optimistically
+      if (String(data.sender) === String(currentUser.id)) {
+        return;
+      }
+
       setMessages(prev => {
         // Check if message already exists to prevent duplicates
         const exists = prev.some(msg => msg.id === data.id);
@@ -222,8 +204,7 @@ useEffect(() => {
           // Ensure image_url is properly set for received images
           const messageWithImageUrl = data.image_path ? {
             ...data,
-            //image_url: `http://localhost:3001/chat-images/${data.image_path}`
-            image_url: `${process.env.REACT_APP_API_URL}/chat-images/${data.image_path}`
+            image_url: data.image_path
           } : data;
           
           return [...prev, messageWithImageUrl];
@@ -232,7 +213,7 @@ useEffect(() => {
       });
     }
 
-    if (data.sender !== currentUser.id && data.room !== selectedConversation?.room_id) {
+    if (String(data.sender) !== String(currentUser.id) && data.room !== selectedConversation?.room_id) {
       setUnreadCounts(prev => ({
         ...prev,
         [data.room]: (prev[data.room] || 0) + 1
@@ -331,13 +312,8 @@ useEffect(() => {
     setMessages(prev => [...prev, messageData]);
     setNewMessage('');
     setFile(null);
-    setPreview(null);
-    setIsTyping(false);
 
-    /*const response = await fetch('http://localhost:3001/messages', {
-      method: 'POST',
-      body: formData
-    });*/
+  
     const response = await fetch(`${process.env.REACT_APP_API_URL}/messages`, {
       method: 'POST',
       body: formData
@@ -353,7 +329,7 @@ useEffect(() => {
         ...msg,
         id: data.id,
         type: data.message_type,
-        content: data.message_type === 'image' ? `chat-images/${data.content}` : null,
+        content: data.message_type === 'image' ? data.image_path : null,
         latitude: data.latitude,
         longitude: data.longitude,
         timestamp: data.created_at
@@ -460,10 +436,6 @@ useEffect(() => {
     formData.append('chatImage', selectedFile);
 
     // Send to server
-    /*fetch('http://localhost:3001/messages', {
-      method: 'POST',
-      body: formData
-    })*/
     fetch(`${process.env.REACT_APP_API_URL}/messages`, {
       method: 'POST',
       body: formData
@@ -480,8 +452,7 @@ useEffect(() => {
           id: data.id,
           type: data.message_type,
           image_path: data.image_path,
-          //image_url: data.image_path ? `http://localhost:3001/chat-images/${data.image_path}` : null,
-          image_url: data.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${data.image_path}` : null,
+          image_url: data.image_path,
           timestamp: data.created_at
         } : msg
       ));
@@ -528,17 +499,6 @@ useEffect(() => {
     }]);
 
     // Save to server
-    /*const response = await fetch('http://localhost:3001/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        roomId: selectedConversation.room_id,
-        senderId: currentUser.id,
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        message: 'Shared location'
-      })
-    });*/
     const response = await fetch(`${process.env.REACT_APP_API_URL}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -596,10 +556,7 @@ useEffect(() => {
       );
     } else if (message.type === 'image' || message.message_type === 'image') {
       // Use image_url if available, otherwise fall back to content or image_path
-      const imageUrl = message.image_url || 
-                      (message.content?.startsWith('blob:') ? message.content : 
-                      //(message.image_path ? `http://localhost:3001/chat-images/${message.image_path}` : null));
-                      (message.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${message.image_path}` : null));
+      const imageUrl = message.image_url || (message.content?.startsWith('blob:') ? message.content : (message.image_path ? message.image_path : null));
 
       return (
         <div className="image-message">
@@ -727,10 +684,6 @@ useEffect(() => {
     formData.append('chatImage', file);
 
     // Send to server
-    /*fetch('http://localhost:3001/messages', {
-      method: 'POST',
-      body: formData
-    })*/
     fetch(`${process.env.REACT_APP_API_URL}/messages`, {
       method: 'POST',
       body: formData
@@ -747,8 +700,7 @@ useEffect(() => {
           id: data.id,
           type: data.message_type,
           image_path: data.image_path,
-          //image_url: data.image_path ? `http://localhost:3001/chat-images/${data.image_path}` : null,
-          image_url: data.image_path ? `${process.env.REACT_APP_API_URL}/chat-images/${data.image_path}` : null,
+          image_url: data.image_path,
           timestamp: data.created_at
         } : msg
       ));
@@ -842,8 +794,7 @@ useEffect(() => {
                     <div className="conversation-avatar">
                       {partner.image ? (
                         <img 
-                          /*src={`http://localhost:3001/images/${partner.image}`}*/
-                          src={`${process.env.REACT_APP_API_URL}/images/${partner.image}`} 
+                          src={partner.image}
                           alt={partner.name}
                           onError={(e) => {
                             e.target.onerror = null;
@@ -866,9 +817,7 @@ useEffect(() => {
                       </div>
                       <p className="message-preview">
                         {conversation.last_message || 'No messages yet'}
-                        {/*{unreadCount > 0 && !isActive && (
-                          <span className="unread-indicator"> • </span>
-                        )}*/}{unreadCount > 0 && !isActive && (
+                        {unreadCount > 0 && !isActive && (
                           <span className="total-unread-badge">{totalUnread}</span>
                         )}
                       </p>
@@ -890,8 +839,7 @@ useEffect(() => {
                         <div className="message-avatar">
                           {partner.image ? (
                             <img 
-                              //src={`http://localhost:3001/images/${partner.image}`} 
-                              src={`${process.env.REACT_APP_API_URL}/images/${partner.image}`}
+                              src={partner.image}
                               alt={partner.name}
                               onError={(e) => {
                                 e.target.onerror = null;

@@ -1,5 +1,5 @@
 import  { useState, useEffect} from "react";
-import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import './freelancermap.css';
 import socket from "../../socket";
 
@@ -11,6 +11,11 @@ const FreelancerMap = ({ initialLocation, onDecision}) => {
   const [selectedMarker, setSelectedMarker] = useState(null); // Tracks which marker is clicked
   const [, setWorkersData] = useState([]);
   const [, setCurrentRoom] = useState();
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: "AIzaSyC5LJKfNJEO0bcHdU_MzOtRQeGuoejp2AA"
+  });
 
   useEffect(() => {
     socket.on("receiveLocation", (locationData) => {
@@ -36,12 +41,6 @@ const FreelancerMap = ({ initialLocation, onDecision}) => {
 
       if (!id) return;
       try {
-        /*const response = await fetch(`http://localhost:3001/workers/${id}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });*/
         const response = await fetch(`${process.env.REACT_APP_API_URL}/workers/${id}`, {
           headers: {
             "Content-Type": "application/json",
@@ -70,11 +69,11 @@ const FreelancerMap = ({ initialLocation, onDecision}) => {
   }, [initialLocation]);
 
   const mapStyles = {
-    height: "500px",
-    width: "60%",
+    height: "50%",
+    width: "75%",
     position: "absolute",
-    left: "25%",
-    top: "20%",
+    top: "25%",
+    left: "13%",
   };
 
   const mapOptions = {
@@ -174,8 +173,7 @@ const handleDecision = (decision) => {
 
 
 
-  return (
-    <LoadScript googleMapsApiKey= {process.env.GOOGLE_API_KEY} >
+  return isLoaded ? (
       <GoogleMap mapContainerStyle={mapStyles} center={mapCenter} zoom={15} options={mapOptions}>
         {clientLocation && !isNaN(clientLocation.lat) && !isNaN(clientLocation.lng) && (
           <Marker
@@ -185,7 +183,7 @@ const handleDecision = (decision) => {
             onClick={() => handleMarkerClick(clientLocation)} // Pass marker data
           />
         )}
-        {selectedMarker && 
+        {selectedMarker &&
           !isNaN(selectedMarker.lat) &&
           !isNaN(selectedMarker.lng) && (
           <InfoWindow
@@ -217,8 +215,7 @@ const handleDecision = (decision) => {
           </InfoWindow>
         )}
       </GoogleMap>
-    </LoadScript>
-  );
+  ) : <></>;
 };
 
 export default FreelancerMap;

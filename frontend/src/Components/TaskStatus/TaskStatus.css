@@ -46,3 +46,12 @@
 .pay-btn:hover {
   background-color: #218838;
 }
+
+/* Tooltip styling */
+#task-status-tooltip {
+  width: auto !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+}

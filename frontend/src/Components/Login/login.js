@@ -14,6 +14,7 @@ const Login = () => {
     username: '',
     password:'',
   });
+  const [errors, setErrors] = useState({});
 
   const getLocation = () => {
     return new Promise((resolve, reject) => {
@@ -39,6 +40,7 @@ const Login = () => {
 const ProceedLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
 
     try {
       if (validate()) {
@@ -56,18 +58,22 @@ const ProceedLogin = async (e) => {
           // Redirect based on user role
         } else {
           // Handle specific error types
-          const errorMessage = result.error || result.msg || 'Login failed. Please try again.';
-          
-          // Check if it's a validation error (array of errors)
-          if (result.errors && Array.isArray(result.errors)) {
-            const validationErrors = result.errors.map(err => err.msg).join(', ');
-            toast.error(validationErrors, {
-              position: toast.POSITION.TOP_CENTER
-            });
+          if (result.field) {
+            setErrors({ [result.field]: result.error });
           } else {
-            toast.error(errorMessage, {
-              position: toast.POSITION.TOP_CENTER
-            });
+            const errorMessage = result.error || result.msg || 'Login failed. Please try again.';
+            
+            // Check if it's a validation error (array of errors)
+            if (result.errors && Array.isArray(result.errors)) {
+              const validationErrors = result.errors.map(err => err.msg).join(', ');
+              toast.error(validationErrors, {
+                position: toast.POSITION.TOP_CENTER
+              });
+            } else {
+              toast.error(errorMessage, {
+                position: toast.POSITION.TOP_CENTER
+              });
+            }
           }
         }
       }
@@ -115,212 +121,124 @@ const ProceedLogin = async (e) => {
     return <Navigate to="/service_form" replace />;
   }
 
-  /*return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-transparent py-4 px-6 flex items-center justify-between">
-        <div className="back-button">
-          <Link to="/">
-            <button className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-              </svg>
-              Back
-            </button>
-          </Link>
-        </div>
-        <div className="logo ml-10 mt-9"> 
-          <img src={logo} alt="Logo" className="max-w-[25rem]" />
-        </div>
-      </header>
   
-      <div className="flex flex-1 items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Sign In</h1>
-          <p className="text-gray-600 text-center mb-8">Welcome back! Please enter your details</p>
-      
-          <form onSubmit={ProceedLogin}>
-            <div className="mb-5">
-              <label className="block text-gray-700 font-medium mb-2">Username<span className="text-red-500">*</span></label>
-              <input 
-                type="text" 
-                value={formData.username} 
-                onChange={handleChange} 
-                name='username'
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                placeholder="Enter your username"
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 font-medium mb-2">Password<span className="text-red-500">*</span></label>
-              <input 
-                type="password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                name='password'
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                placeholder="Enter your password"
-              />
-            </div>
-        
-            <div className="mb-6">
-              <ReCAPTCHA
-                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                onChange={handleCaptchaChange}
-                className="flex justify-center"
-              />
-            </div>
-        
-        
-            <div className="button-container mb-6">
-              <button 
-                type="submit"
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${captchaValue 
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                disabled={!captchaValue || isLoading} 
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign In'
-                )}
-              </button>
-            </div>
-        
-            <div className="text-center">
-              <p className="text-gray-600">Don't have an account? 
-                <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-medium ml-1 transition-colors">
-                  Create account
-                </Link>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-  
-      <ToastContainer
-        autoClose={5000}
-        hideProgressBar={true}
-        newestOnTop={false}
-        theme="colored"
-        transition={Bounce}
-      />
-    </div>
-  );*/
-  return (
-    <div className="min-h-screen flex flex-col bg-teal-50 font-sans">
-  {/* Header */}
-  <header className="bg-transparent py-6 px-8 flex items-center justify-between">
-    <div className="back-button">
-      <Link to="/">
-        <button className="flex items-center text-teal-600 hover:text-teal-800 font-semibold transition-all duration-300 hover:bg-teal-100 px-4 py-2 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+return (
+  <div className="min-h-screen flex flex-col bg-teal-50 font-sans overflow-hidden">
+    {/* Header */}
+    <header className="w-full max-w-screen-xl mx-auto flex items-center justify-between 
+      py-4 px-6 border-b border-slate-300  backdrop-blur-md">
+      {/* Back Button - LEFT */}
+      <Link to="/" className="flex-shrink-0">
+        <button
+          className="flex items-center text-teal-600 hover:text-teal-800 font-semibold
+          transition-all duration-300 hover:bg-teal-100 px-3 py-2 rounded-lg
+          text-sm sm:text-base"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
           </svg>
-          Back to Navigator
+
+          <span className="hidden sm:inline">Back to Navigator</span>
+          <span className="sm:hidden text-m">Back</span>
         </button>
       </Link>
-    </div>
 
-    <div className="logo ml-10 mt-6">
-      <img src={logo} alt="Logo" className="max-w-[20rem] drop-shadow-md" />
-    </div>
-  </header>
+      {/* Logo - RIGHT */}
+      <div className="flex-shrink-0 pt-6">
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-32 sm:w-40 md:w-52 lg:w-60 drop-shadow-md"
+        />
+      </div>
 
-  {/* Main Content */}
-  <div className="flex flex-1 items-center justify-center p-6">
-    <div className="bg-white border border-lime-200 rounded-2xl shadow-lg shadow-lime-100 p-10 w-full max-w-md  ">
-      <h1 className="text-4xl font-extrabold text-center text-teal-700 mb-2 tracking-tight">
-        Sign In
-      </h1>
-      <p className="text-slate-600 text-center mb-8">
-        Welcome back! Please enter your details 🌟
-      </p>
+    </header>
 
-      <form onSubmit={ProceedLogin}>
-        {/* Username */}
-        <div className="mb-5">
-          <label className="block text-slate-700 font-medium mb-2">
-            Username<span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.username}
-            onChange={handleChange}
-            name="username"
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
-            placeholder="Enter your username"
-          />
-        </div>
 
-        {/* Password */}
-        <div className="mb-6">
-          <label className="block text-slate-700 font-medium mb-2">
-            Password<span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            name="password"
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
-            placeholder="Enter your password"
-          />
-        </div>
 
-        {/* Sign In Button */}
-        <div className="button-container mb-6">
+    {/* Main Content */}
+    <div className="flex-1 flex items-center justify-center px-4 py-6 sm:px-6 overflow-y-auto">
+      <div className="bg-white border border-lime-200 rounded-xl sm:rounded-2xl shadow-lg shadow-lime-100 w-full max-w-xs sm:max-w-sm md:max-w-md p-5 sm:p-6 md:p-8 lg:p-10 mx-auto">
+
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center text-teal-700 mb-2">Sign In</h1>
+        <p className="text-slate-600 text-center text-sm sm:text-base mb-5 sm:mb-6 md:mb-8 font-medium">
+          Welcome back! Please enter your details 🌟
+        </p>
+
+        <form onSubmit={ProceedLogin}>
+          {/* Username */}
+          <div className="mb-4">
+            <label className="block text-slate-700 font-medium mb-1 text-sm sm:text-base">
+              Username <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border ${errors.username ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition text-sm sm:text-base`}
+              placeholder="Enter your username"
+            />
+            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+          </div>
+
+          {/* Password */}
+          <div className="mb-5">
+            <label className="block text-slate-700 font-medium mb-1 text-sm sm:text-base">
+              Password <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border ${errors.password ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition text-sm sm:text-base`}
+              placeholder="Enter your password"
+            />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          </div>
+
+          {/* Sign In Button */}
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-              isFormValid()
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
             disabled={isLoading || !isFormValid()}
+            className={`w-full py-2 sm:py-3 rounded-lg font-semibold text-lg sm:text-base md:text-lg transition-all duration-300
+              ${isFormValid() ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Signing in...
               </div>
             ) : (
               'Sign In'
             )}
           </button>
-        </div>
 
-        {/* Register Link */}
-        <div className="text-center">
-          <p className="text-slate-600">
-            Don’t have an account?
-            <Link
-              to="/register"
-              className="text-teal-600 hover:text-emerald-600 font-semibold ml-1 transition-colors"
-            >
+          {/* Register Link */}
+          <p className="text-center text-slate-600 text-sm sm:text-base mt-4">
+            Don't have an account?
+            <Link to="/register" className="text-teal-600 hover:text-emerald-600 font-semibold ml-1">
               Create account
             </Link>
           </p>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
+
+    {/* Toast Container */}
+    <ToastContainer autoClose={5000} hideProgressBar theme="colored" transition={Bounce} />
   </div>
-
-  {/* Toast Notifications */}
-  <ToastContainer
-    autoClose={5000}
-    hideProgressBar={true}
-    newestOnTop={false}
-    theme="colored"
-    transition={Bounce}
-  />
-</div>
-
-
-  )
+);
 };
 
 export default Login
