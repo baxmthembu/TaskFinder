@@ -16,7 +16,7 @@ export default function Navigator() {
         </h1>
 
         {/* CARD GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full px-2 ml-32 md:ml-67 lg:ml-80 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full px-2 ml-16 md:ml-32 lg:ml-48 mb-12">
             <Link
                 to="/login"
                 className="w-full max-w-[280px] sm:max-w-[300px] lg:max-w-[320px] bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-3 sm:p-5 lg:p-7 border border-gray-200 hover:border-teal-300 group touch-manipulation active:scale-95"
