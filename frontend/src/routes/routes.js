@@ -1,5 +1,5 @@
 // routes.js
-import { RouterProvider, createHashRouter, Navigate} from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Navigate} from "react-router-dom";
 import Home from "../Components/Home/home";
 import ServiceRequestForm from "../Components/ServiceRequestForm/service_form";
 import FreelancerLocationTracker from "../WorkerHome/workerhome";
@@ -12,7 +12,7 @@ import Register from "../Components/Register/register";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
 import WorkerProtectedRoute from "./workerProtectedRoute.js";
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   // Public routes - load immediately without waiting for auth
   {
     path: "/",

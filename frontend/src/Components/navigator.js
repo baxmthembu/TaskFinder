@@ -49,7 +49,7 @@ export default function Navigator() {
       </main>
       {/* Footer */}
       <footer className="py-4 text-center text-sm text-slate-500">
-        © {new Date().getFullYear()} Taskify. All rights reserved.
+        © {new Date().getFullYear()} Taskaroo. All rights reserved.
       </footer>
     </div>
   );
