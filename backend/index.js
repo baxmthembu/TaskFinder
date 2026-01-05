@@ -31,7 +31,9 @@ const io = socketIo(server, {
       "http://localhost:3000",
       "https://baxmthembu.github.io",
       "https://taskify.co.za",
-      "https://www.taskify.co.za"
+      "https://www.taskify.co.za",
+      "https://www.taskaroo.co.za",
+      "https://taskaroo.co.za"
     ],
     methods: ["GET", "POST"],
     credentials: true
@@ -418,7 +420,9 @@ app.use(cors({
     'http://localhost:3000',
     'https://baxmthembu.github.io',
     'https://taskify.co.za',
-    'https://www.taskify.co.za'
+    'https://www.taskify.co.za',
+    'https://www.taskaroo.co.za',
+    'https://taskaroo.co.za'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
@@ -919,7 +923,7 @@ app.post('/logout', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? 'none' : 'strict',
-      domain: process.env.NODE_ENV === "production" ? '.taskify.co.za' : undefined,
+      domain: process.env.NODE_ENV === "production" ? '.taskaroo.co.za' : undefined,
     }).json({ msg: 'Logout Successful' });
   }
 });
