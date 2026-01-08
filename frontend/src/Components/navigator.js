@@ -1,7 +1,22 @@
-import { Link } from "react-router-dom"
+import { Link, Navigate } from "react-router-dom"
+import { useAuth } from "../provider/authProvider"
+import LoadingSpinner from "./LoadingSpinner/LoadingSpinner"
 import logo from "./Images/taskaroo.svg"
 
 export default function Navigator() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <LoadingSpinner message="Authenticating user..." />
+  }
+
+  if (user) {
+    if (user.role === 'client') {
+      return <Navigate to="/home" replace />
+    } else if (user.role === 'freelancer') {
+      return <Navigate to="/freelancerhome" replace />
+    }
+  }
   return (
     <div className="min-h-screen w-full flex flex-col items-center  overflow-x-hidden">
       {/* Header */}
